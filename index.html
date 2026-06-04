@@ -274,7 +274,7 @@ canvas{display:block;max-width:100%}
 </div>
 
 <!-- SETUP SCREEN (for storage choice after login) -->
-<div id="setup" style="position:fixed;inset:0;background:linear-gradient(135deg,#0D0D16 0%,#171724 60%,#1a0810 100%);display:flex;align-items:center;justify-content:center;z-index:9998;display:none">
+<div id="setup" style="position:fixed;inset:0;background:linear-gradient(135deg,#0D0D16 0%,#171724 60%,#1a0810 100%);display:none;align-items:center;justify-content:center;z-index:9998">
   <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:44px 48px;max-width:440px;width:92%;text-align:center">
     <div style="font-size:44px;margin-bottom:18px">💾</div>
     <div style="color:#fff;font-size:18px;font-weight:700;margin-bottom:8px">Data Kahan Save Karna Hai?</div>
@@ -613,9 +613,8 @@ async function doSignup(){
 }
 
 function afterLogin(){
-  document.getElementById('login-screen').style.display='none';
-  if(Auth.user) document.getElementById('user-email').textContent=Auth.user.email||'';
-  setupLocal(); // boot app
+  if(Auth.user){ const em=document.getElementById('user-email'); if(em) em.textContent=Auth.user.email||''; }
+  launchApp();
 }
 
 function doLogout(){
@@ -1700,27 +1699,47 @@ function updateStorageStatus(){
 
 // ─── BOOT ──────────────────────────────────────────────
 async function launchApp(){
-  document.getElementById('setup').style.display='none';
-  document.getElementById('app').style.display='flex';
-  document.getElementById('page-date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'long'});
+  // Show app immediately
+  const loginEl=document.getElementById('login-screen');
+  if(loginEl) loginEl.style.display='none';
+  const appEl=document.getElementById('app');
+  if(appEl) appEl.style.display='flex';
+  
+  // Setup nav listeners
   document.querySelectorAll('.sb-item[data-page]').forEach(el=>{
     el.addEventListener('click',function(){
       goPage(this.dataset.page);
       if(window.innerWidth<=640) closeSidebar();
     });
   });
-  // Show loading
-  const c=document.getElementById('content');
-  c.innerHTML='<div class="empty"><div class="ei">⏳</div><h3>Data load ho raha hai...</h3></div>';
-  // Load from Supabase
-  const ok=await DB.loadFromSupabase();
-  if(!ok) DB.load(); // fallback to localStorage
-  // Update UI
-  document.getElementById('partner-a').textContent=DB.settings.partnerA||'Arman';
-  document.getElementById('partner-b').textContent=DB.settings.partnerB||'Vishal';
+  
+  // Set date
+  const dateEl=document.getElementById('page-date');
+  if(dateEl) dateEl.textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'long'});
+  
+  // STEP 1: Load localStorage immediately & render
+  DB.load();
+  const pAEl=document.getElementById('partner-a');
+  const pBEl=document.getElementById('partner-b');
+  if(pAEl) pAEl.textContent=DB.settings.partnerA||'Arman';
+  if(pBEl) pBEl.textContent=DB.settings.partnerB||'Vishal';
+  goPage('dashboard'); // Instant render from localStorage
   updateStorageStatus();
-  // Render dashboard once with fresh data
-  goPage('dashboard');
+  
+  // STEP 2: Load from Supabase in background, then refresh if new data
+  setTimeout(async()=>{
+    try{
+      const ok=await DB.loadFromSupabase();
+      if(ok){
+        if(pAEl) pAEl.textContent=DB.settings.partnerA||'Arman';
+        if(pBEl) pBEl.textContent=DB.settings.partnerB||'Vishal';
+        // Only re-render if on dashboard
+        const title=document.getElementById('page-title');
+        if(title&&title.textContent==='Dashboard') goPage('dashboard');
+        setDot('ok');
+      }
+    }catch(e){ console.warn('Background sync failed:',e); setDot('err'); }
+  }, 500);
 }
 
 async function setupFolder(){
@@ -1747,24 +1766,23 @@ function setupLocal(){
 }
 
 document.addEventListener('DOMContentLoaded',async function(){
-  // 1. Try auto-login with saved token
-  const loggedIn=await Auth.tryAutoLogin();
+  setDot('saving');
+  // Try auto-login with saved token
+  let loggedIn = false;
+  try{ loggedIn = await Auth.tryAutoLogin(); }catch(e){ console.warn('Auth error:',e); }
+  
   if(loggedIn){
-    if(Auth.user) document.getElementById('user-email').textContent=Auth.user.email||'';
-    // Try folder reconnect
-    const folderOk=await FS.tryAutoConnect();
-    if(folderOk){ await loadFromFolder(); }
-    else {
-      DB.load();
-      await DB.loadFromSupabase();
+    if(Auth.user){ 
+      const em=document.getElementById('user-email');
+      if(em) em.textContent=Auth.user.email||'';
     }
     document.getElementById('login-screen').style.display='none';
     await launchApp();
-    return;
+  } else {
+    // Show login screen
+    setDot('ok');
+    document.getElementById('login-screen').style.display='flex';
   }
-  // 2. No valid token — show login screen
-  setDot('ok');
-  // login-screen is already visible by default
 });
 
 
