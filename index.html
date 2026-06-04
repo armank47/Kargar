@@ -661,7 +661,7 @@ function goPage(page){
   try{ c.innerHTML=PAGES[page]?PAGES[page]():'<div class="empty"><div class="ei">🚧</div><h3>Coming Soon</h3></div>'; }
   catch(e){ console.error(page,e); c.innerHTML='<div class="empty"><div class="ei">⚠️</div><h3>Page Error</h3><p style="font-size:11px;color:red;font-family:monospace">'+esc(e.message)+'</p></div>'; }
   c.scrollTop=0;
-  if(page==='dashboard') setTimeout(drawCharts,100);
+  if(page==='dashboard') requestAnimationFrame(()=>setTimeout(drawCharts,150));
 }
 
 // ─── PAGES ─────────────────────────────────────────────
@@ -1709,19 +1709,18 @@ async function launchApp(){
       if(window.innerWidth<=640) closeSidebar();
     });
   });
-  // Show loading state
-  document.getElementById('content').innerHTML='<div class="empty"><div class="ei">⏳</div><h3>Supabase se data load ho raha hai...</h3><p>Please wait</p></div>';
-  goPage('dashboard');
-  // Load from Supabase first (overrides local)
+  // Show loading
+  const c=document.getElementById('content');
+  c.innerHTML='<div class="empty"><div class="ei">⏳</div><h3>Data load ho raha hai...</h3></div>';
+  // Load from Supabase
   const ok=await DB.loadFromSupabase();
-  if(!ok){
-    // Fallback: use localStorage cache
-    DB.load();
-  }
+  if(!ok) DB.load(); // fallback to localStorage
+  // Update UI
   document.getElementById('partner-a').textContent=DB.settings.partnerA||'Arman';
   document.getElementById('partner-b').textContent=DB.settings.partnerB||'Vishal';
   updateStorageStatus();
-  goPage('dashboard'); // Re-render with fresh data
+  // Render dashboard once with fresh data
+  goPage('dashboard');
 }
 
 async function setupFolder(){
