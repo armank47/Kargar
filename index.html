@@ -296,7 +296,49 @@ canvas{display:block;max-width:100%}
 <div id="status-bar"><span class="dot" id="sdot"></span><span id="stxt">Ready</span></div>
 
 <script>
-// ─── STORAGE ───────────────────────────────────────────
+// ─── SUPABASE CONFIG ───────────────────────────────────
+const SUPA_URL = 'https://ytpximniajvrtbuiodkn.supabase.co';
+const SUPA_KEY = 'sb_publishable_AGq2eXQo1jFldJAHSgIBKg_aH5bKmEI';
+
+const SB = {
+  async get(){ 
+    try{
+      const r=await fetch(SUPA_URL+'/rest/v1/kargar_data?id=eq.main&select=*',{
+        headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}
+      });
+      if(!r.ok)return null;
+      const d=await r.json();
+      return d&&d[0]?d[0]:null;
+    }catch(e){ console.warn('Supabase get error:',e); return null; }
+  },
+  async save(data){
+    try{
+      const payload={
+        id:'main',
+        clients:data.clients||[],
+        work_orders:data.workOrders||[],
+        costs:data.costs||[],
+        payments:data.payments||[],
+        vendors:data.vendors||[],
+        contractors:data.contractors||[],
+        salesmen:data.salesmen||[],
+        partner_txns:data.partnerTxns||[],
+        history:(data.history||[]).slice(0,100),
+        cms:data.cms||{},
+        settings:data.settings||{},
+        updated_at:new Date().toISOString()
+      };
+      const r=await fetch(SUPA_URL+'/rest/v1/kargar_data',{
+        method:'POST',
+        headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},
+        body:JSON.stringify(payload)
+      });
+      return r.ok;
+    }catch(e){ console.warn('Supabase save error:',e); return false; }
+  }
+};
+
+// ─── STORAGE (localStorage as cache) ───────────────────
 const LS = {
   get(k){ try{ const v=localStorage.getItem('kg2_'+k); return v?JSON.parse(v):null; }catch(e){ return null; } },
   set(k,v){ try{ localStorage.setItem('kg2_'+k,JSON.stringify(v)); return true; }catch(e){ return false; } }
@@ -310,19 +352,46 @@ const DB = {
   cms:{ services:['Container Body','Open Body','Refrigerated Body','Tanker Body','Flat Bed','Tipper Body'], expenseCategories:['Raw Material','Welding Gas','Painting','Labour','Transport','Electrical','Hardware','Misc','Chai/Paani','Petrol'] },
 
   load(){
+    // Load from localStorage (cache)
     const keys=['clients','workOrders','costs','payments','vendors','contractors','salesmen','partnerTxns','history','settings','cms'];
     keys.forEach(k=>{ const d=LS.get(k); if(d){ if(k==='settings'||k==='cms') Object.assign(this[k],d); else this[k]=d; } });
   },
+  async loadFromSupabase(){
+    try{
+      setDot('saving');
+      const d=await SB.get();
+      if(!d){ setDot('ok'); return false; }
+      // Map supabase columns back to DB keys
+      const map={clients:'clients',work_orders:'workOrders',costs:'costs',payments:'payments',vendors:'vendors',contractors:'contractors',salesmen:'salesmen',partner_txns:'partnerTxns',history:'history'};
+      Object.entries(map).forEach(([col,key])=>{ if(d[col]&&Array.isArray(d[col])) this[key]=d[col]; });
+      if(d.cms&&typeof d.cms==='object') Object.assign(this.cms,d.cms);
+      if(d.settings&&typeof d.settings==='object') Object.assign(this.settings,d.settings);
+      // Also cache to localStorage
+      const keys=['clients','workOrders','costs','payments','vendors','contractors','salesmen','partnerTxns','history','settings','cms'];
+      keys.forEach(k=>LS.set(k,this[k]));
+      setDot('ok');
+      return true;
+    }catch(e){ console.warn('loadFromSupabase error:',e); setDot('err'); return false; }
+  },
 
   _t:null,
+  _supaT:null,
   save(k){
     clearTimeout(this._t);
     setDot('saving');
+    // Save to localStorage immediately
     this._t=setTimeout(()=>{
       const keys=k?[k]:['clients','workOrders','costs','payments','vendors','contractors','salesmen','partnerTxns','history','settings','cms'];
       keys.forEach(key=>LS.set(key,this[key]));
-      setDot('ok');
-    },500);
+      // Sync to Supabase (debounced 2s)
+      clearTimeout(this._supaT);
+      this._supaT=setTimeout(()=>this.syncToSupabase(),2000);
+    },300);
+  },
+  async syncToSupabase(){
+    const ok=await SB.save(this);
+    setDot(ok?'ok':'err');
+    if(!ok) console.warn('Supabase sync failed - data saved locally');
   },
 
   uid(p){ return p+Date.now()+Math.random().toString(36).slice(2,6).toUpperCase(); },
@@ -1425,24 +1494,33 @@ async function loadFromFolder(){
 
 function updateStorageStatus(){
   const stxt=document.getElementById('stxt');
-  if(stxt) stxt.textContent=FS.handle?'📁 Folder':'💾 Browser';
+  if(stxt) stxt.textContent=FS.handle?'📁 Folder':'☁️ Supabase';
 }
 
 // ─── BOOT ──────────────────────────────────────────────
-function launchApp(){
+async function launchApp(){
   document.getElementById('setup').style.display='none';
   document.getElementById('app').style.display='flex';
   document.getElementById('page-date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'long'});
-  document.getElementById('partner-a').textContent=DB.settings.partnerA||'Arman';
-  document.getElementById('partner-b').textContent=DB.settings.partnerB||'Vishal';
   document.querySelectorAll('.sb-item[data-page]').forEach(el=>{
     el.addEventListener('click',function(){
       goPage(this.dataset.page);
       if(window.innerWidth<=640) closeSidebar();
     });
   });
+  // Show loading state
+  document.getElementById('content').innerHTML='<div class="empty"><div class="ei">⏳</div><h3>Supabase se data load ho raha hai...</h3><p>Please wait</p></div>';
   goPage('dashboard');
+  // Load from Supabase first (overrides local)
+  const ok=await DB.loadFromSupabase();
+  if(!ok){
+    // Fallback: use localStorage cache
+    DB.load();
+  }
+  document.getElementById('partner-a').textContent=DB.settings.partnerA||'Arman';
+  document.getElementById('partner-b').textContent=DB.settings.partnerB||'Vishal';
   updateStorageStatus();
+  goPage('dashboard'); // Re-render with fresh data
 }
 
 async function setupFolder(){
@@ -1465,7 +1543,7 @@ async function setupFolder(){
 
 function setupLocal(){
   DB.load();
-  launchApp();
+  launchApp(); // launchApp will also try Supabase
 }
 
 document.addEventListener('DOMContentLoaded',async function(){
@@ -1480,10 +1558,19 @@ document.addEventListener('DOMContentLoaded',async function(){
   const hasData=localStorage.getItem('kg2_workOrders');
   if(hasData){
     DB.load();
-    launchApp();
+    await launchApp();
     return;
   }
-  // Fresh install — show setup screen
+  // Fresh install — try Supabase first
+  setDot('saving');
+  const supaOk=await DB.loadFromSupabase();
+  if(supaOk&&DB.workOrders.length>0){
+    // Has data on Supabase — auto boot
+    await launchApp();
+    return;
+  }
+  setDot('ok');
+  // Show setup screen for new users
 });
 </script>
 </body>
