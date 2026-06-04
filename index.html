@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <title>KARGAR V2</title>
 <meta name="description" content="Kargar Body Works Management System">
 <meta name="theme-color" content="#E8193C">
@@ -16,6 +16,16 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#F0F2F8;color:#0D0D16;height:100vh;height:100dvh;display:flex;overflow:hidden;font-size:14px}
+/* PWA standalone mode - iOS status bar */
+@media all and (display-mode: standalone){
+  #topbar{
+    padding-top:max(44px,env(safe-area-inset-top));
+    height:calc(52px + max(44px,env(safe-area-inset-top)));
+  }
+  #sidebar{
+    padding-top:max(44px,env(safe-area-inset-top));
+  }
+}
 :root{--red:#E8193C;--green:#00C48C;--amber:#F5A623;--blue:#4070FF;--purple:#8B5CF6;--teal:#06B6D4;--dark:#0D0D16;--dark2:#171724;--border:#E4E7F0;--card:#fff;--t2:#4A5068;--t3:#9098B1;--r:10px}
 
 /* ── SIDEBAR ── */
@@ -41,9 +51,20 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#F0F2F8;color:#0D0D1
 #hamburger{display:none;background:none;border:none;cursor:pointer;padding:6px;color:var(--t2);flex-shrink:0}
 #hamburger span{display:block;width:20px;height:2px;background:currentColor;margin:4px 0;border-radius:2px;transition:.2s}
 #sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199}
-/* Safe area for notch phones */
-#topbar{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
-#content{padding-bottom:max(16px,env(safe-area-inset-bottom))}
+/* Safe area for notch/Dynamic Island iPhones */
+#topbar{
+  padding-left:max(16px,env(safe-area-inset-left));
+  padding-right:max(16px,env(safe-area-inset-right));
+  padding-top:env(safe-area-inset-top);
+  height:calc(52px + env(safe-area-inset-top));
+  box-sizing:content-box;
+}
+#content{
+  padding-bottom:max(16px,env(safe-area-inset-bottom));
+}
+#sidebar{
+  padding-top:env(safe-area-inset-top);
+}
 
 /* ── CARDS ── */
 .card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);box-shadow:0 1px 8px rgba(0,0,0,.05)}
@@ -146,13 +167,13 @@ canvas{display:block;max-width:100%}
   body{overflow:hidden}
 
   /* Sidebar slides in as drawer */
-  #sidebar{position:fixed;top:0;left:0;height:100%;transform:translateX(-100%);width:240px;z-index:200}
-  #sidebar.open{transform:translateX(0)}
+  #sidebar{position:fixed;top:0;left:0;height:100%;transform:translateX(-100%);width:min(240px,75vw);z-index:200}
+  #sidebar.open{transform:translateX(0);box-shadow:4px 0 24px rgba(0,0,0,.4)}
   #sidebar-overlay.open{display:block}
 
   /* Topbar */
   #hamburger{display:block}
-  #topbar{padding:0 12px;height:50px;gap:8px}
+  #topbar{padding:0 12px;gap:8px;align-items:flex-end;padding-bottom:8px}
   #page-title{font-size:14px;font-weight:700}
   /* Desktop actions hidden on mobile */
   .topbar-desktop{display:none!important}
@@ -231,7 +252,7 @@ canvas{display:block;max-width:100%}
 
 <!-- LOGIN SCREEN -->
 <div id="login-screen" style="position:fixed;inset:0;background:linear-gradient(135deg,#0D0D16 0%,#171724 60%,#1a0810 100%);display:flex;align-items:center;justify-content:center;z-index:9999">
-  <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:40px 44px;max-width:420px;width:92%;text-align:center">
+  <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:40px 44px;max-width:420px;width:92%;text-align:center;margin-top:env(safe-area-inset-top)">
     <div style="font-size:52px;font-weight:900;color:#E8193C;letter-spacing:4px;line-height:1">KARGAR</div>
     <div style="display:inline-block;background:#E8193C;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:1px;margin:4px 0 4px">V2</div>
     <div style="color:rgba(255,255,255,.25);font-size:10px;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:28px">Body Works Management System</div>
