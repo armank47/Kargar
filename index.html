@@ -322,7 +322,13 @@ canvas{display:block;max-width:100%}
     <div class="sb-item" data-page="workorders">🔧 Work Orders</div>
     <div class="sb-item" data-page="costing">💰 Costing</div>
     <div class="sb-item" data-page="dailyexpense">⚡ Daily Expense</div>
+    <div class="sb-item" data-page="labourwork">🔨 Labour / Kaam</div>
+    <div class="sb-item" data-page="udhar">📒 Udhar Khata</div>
     <div class="sb-item" data-page="payments">💳 Payments</div>
+  </div>
+  <div class="sb-sec">
+    <div class="sb-lbl">Fixed Expenses</div>
+    <div class="sb-item" data-page="fixedexp">🏠 Rent & Bills</div>
   </div>
   <div class="sb-sec">
     <div class="sb-lbl">People</div>
@@ -478,7 +484,7 @@ const SB = {
       const payload={
         id:'main',
         clients:data.clients||[],
-        work_orders:data.workOrders||[],
+        work_orders:data.workOrders||[],labour_jobs:data.labourJobs||[],udhars:data.udhars||[],fixed_bills:data.fixedBills||[],
         costs:data.costs||[],
         payments:data.payments||[],
         vendors:data.vendors||[],
@@ -508,14 +514,30 @@ const LS = {
 
 // ─── DATABASE ──────────────────────────────────────────
 const DB = {
-  clients:[], workOrders:[], costs:[], payments:[],
+  clients:[], workOrders:[], costs:[], payments:[], labourJobs:[], udhars:[], fixedBills:[],
   vendors:[], contractors:[], salesmen:[], partnerTxns:[], history:[],
   settings:{ companyName:'Kargar Body Works', address:'Plot No. 24, Village Bajghera, Near Shiv Flor Mil, Gurugram, Haryana - 122017', phone:'+91 9819 41768', email:'kargar.team@gmail.com', gstin:'06DFTPA2607L1ZB', website:'www.kargar.in', gstRate:18, partnerA:'Arman', partnerB:'Vishal' },
-  cms:{ services:['Container Body','Open Body','Refrigerated Body','Tanker Body','Flat Bed','Tipper Body'], expenseCategories:['Raw Material','Welding Gas','Painting','Labour','Transport','Electrical','Hardware','Misc','Chai/Paani','Petrol'] },
+  cms:{ 
+    services:['Container Body','Open Body','Refrigerated Body','Tanker Body','Flat Bed','Tipper Body'], 
+    expenseCategories:['Raw Material','Welding Gas','Painting','Labour','Transport','Electrical','Hardware','Misc','Chai/Paani','Petrol'],
+    labourTypes:[
+      {name:'Paint (Body)',unit:'per body',rate:0},
+      {name:'Likhai (Writing)',unit:'per body',rate:0},
+      {name:'MIG Welding',unit:'per hour',rate:0},
+      {name:'Arc Welding',unit:'per hour',rate:0},
+      {name:'Fabrication (Full)',unit:'per body',rate:0},
+      {name:'Grinding',unit:'per hour',rate:0},
+      {name:'Electrical Fitting',unit:'per body',rate:0},
+      {name:'Panel Beating',unit:'per hour',rate:0},
+      {name:'Gas Cutting',unit:'per hour',rate:0},
+      {name:'Urgent Labour',unit:'per day',rate:0}
+    ],
+    fixedBillTypes:['Garage Rent','Electricity Bill','Water Bill','Internet/Mobile','Insurance','Other Fixed']
+  },
 
   load(){
     // Load from localStorage (cache)
-    const keys=['clients','workOrders','costs','payments','vendors','contractors','salesmen','partnerTxns','history','settings','cms'];
+    const keys=['clients','workOrders','costs','payments','labourJobs','udhars','fixedBills','vendors','contractors','salesmen','partnerTxns','history','settings','cms'];
     keys.forEach(k=>{ const d=LS.get(k); if(d){ if(k==='settings'||k==='cms') Object.assign(this[k],d); else this[k]=d; } });
   },
   async loadFromSupabase(){
@@ -524,12 +546,12 @@ const DB = {
       const d=await SB.get();
       if(!d){ setDot('ok'); return false; }
       // Map supabase columns back to DB keys
-      const map={clients:'clients',work_orders:'workOrders',costs:'costs',payments:'payments',vendors:'vendors',contractors:'contractors',salesmen:'salesmen',partner_txns:'partnerTxns',history:'history'};
+      const map={clients:'clients',work_orders:'workOrders',costs:'costs',payments:'payments',vendors:'vendors',contractors:'contractors',salesmen:'salesmen',partner_txns:'partnerTxns',history:'history',labour_jobs:'labourJobs',udhars:'udhars',fixed_bills:'fixedBills'};
       Object.entries(map).forEach(([col,key])=>{ if(d[col]&&Array.isArray(d[col])) this[key]=d[col]; });
       if(d.cms&&typeof d.cms==='object') Object.assign(this.cms,d.cms);
       if(d.settings&&typeof d.settings==='object') Object.assign(this.settings,d.settings);
       // Also cache to localStorage
-      const keys=['clients','workOrders','costs','payments','vendors','contractors','salesmen','partnerTxns','history','settings','cms'];
+      const keys=['clients','workOrders','costs','payments','labourJobs','udhars','fixedBills','vendors','contractors','salesmen','partnerTxns','history','settings','cms'];
       keys.forEach(k=>LS.set(k,this[k]));
       setDot('ok');
       return true;
@@ -543,7 +565,7 @@ const DB = {
     setDot('saving');
     // Save to localStorage immediately
     this._t=setTimeout(()=>{
-      const keys=k?[k]:['clients','workOrders','costs','payments','vendors','contractors','salesmen','partnerTxns','history','settings','cms'];
+      const keys=k?[k]:['clients','workOrders','costs','payments','labourJobs','udhars','fixedBills','vendors','contractors','salesmen','partnerTxns','history','settings','cms'];
       keys.forEach(key=>LS.set(key,this[key]));
       // Sync to Supabase (debounced 2s)
       clearTimeout(this._supaT);
@@ -675,7 +697,7 @@ function toggleSidebar_sbItem(){
 
 function goPage(page){
   document.querySelectorAll('.sb-item').forEach(el=>{ el.classList.toggle('active', el.dataset.page===page); });
-  const titles={dashboard:'Dashboard',trucks:'Truck Entry',workorders:'Work Orders',costing:'Costing',dailyexpense:'⚡ Daily Expense',payments:'Payments',clients:'Clients',vendors:'Vendors',contractors:'Thekedar',contractorledger:'📒 Contractor Ledger',partners:'Partner Ledger',reports:'Reports & P&L',settings:'⚙️ Settings'};
+  const titles={dashboard:'Dashboard',trucks:'Truck Entry',workorders:'Work Orders',costing:'Costing',dailyexpense:'⚡ Daily Expense',labourwork:'🔨 Labour / Kaam Types',payments:'Payments',udhar:'📒 Udhar Khata',fixedexp:'🏠 Rent & Fixed Bills',clients:'Clients',vendors:'Vendors',contractors:'Thekedar',contractorledger:'📒 Contractor Ledger',partners:'Partner Ledger',reports:'Reports & P&L',settings:'⚙️ Settings'};
   document.getElementById('page-title').textContent=titles[page]||page;
   const c=document.getElementById('content');
   try{ c.innerHTML=PAGES[page]?PAGES[page]():'<div class="empty"><div class="ei">🚧</div><h3>Coming Soon</h3></div>'; }
@@ -1028,6 +1050,164 @@ PAGES.reports=function(){
   <td><span class="badge ${parseFloat(pct)<10?'bgr':parseFloat(pct)<20?'ba':'bgg'}">${pct}%</span></td>
   <td><span class="badge ${STcol[w.status]||'bg'}">${esc(w.status)}</span></td>
   </tr>`;}).join(''):'<tr><td colspan="8"><div class="empty" style="padding:24px">No data</div></td></tr>'}
+  </table></div>
+</div>`;
+};
+
+// ══════════════════════════════════════════════════════
+// LABOUR / KAAM PAGE
+// ══════════════════════════════════════════════════════
+PAGES.labourwork=function(){
+  const jobs=[...DB.labourJobs].reverse();
+  const total=DB.labourJobs.reduce((s,j)=>s+(parseFloat(j.amount)||0),0);
+  const pending=DB.labourJobs.filter(j=>j.status==='Pending').reduce((s,j)=>s+(parseFloat(j.amount)||0),0);
+  const paid=DB.labourJobs.filter(j=>j.status==='Paid').reduce((s,j)=>s+(parseFloat(j.amount)||0),0);
+  const pA=DB.settings.partnerA||'Arman', pB=DB.settings.partnerB||'Vishal';
+  return `
+<div class="sec-hdr">
+  <div><div class="sec-ttl">🔨 Labour / Kaam Types</div><div class="sec-sub">Painting, Welding, Likhai alag alag</div></div>
+  <div style="display:flex;gap:8px">
+    <button class="btn btn-ghost btn-sm" onclick="goPage('settings')">⚙️ Rates Set Karo</button>
+    <button class="btn btn-red" onclick="showAddLabour()">+ Add Kaam</button>
+  </div>
+</div>
+<div class="stats" style="grid-template-columns:repeat(3,1fr)">
+  <div class="stat amber"><div class="stat-l">Total Kaam</div><div class="stat-v">${fmtM(total)}</div></div>
+  <div class="stat red"><div class="stat-l">Pending</div><div class="stat-v">${fmtM(pending)}</div></div>
+  <div class="stat green"><div class="stat-l">Paid</div><div class="stat-v">${fmtM(paid)}</div></div>
+</div>
+<div class="card"><div class="tw"><table>
+<tr><th>Date</th><th>Kaam Type</th><th>Worker</th><th>Work Order</th><th>Qty/Hours</th><th>Amount</th><th>Paid By</th><th>Status</th><th></th></tr>
+${jobs.length?jobs.map(j=>{
+  const wo=j.woId?DB.getWO(j.woId):null;
+  return`<tr>
+  <td style="font-size:11px;font-family:monospace">${fmt(j.date)}</td>
+  <td><span class="badge ba">${esc(j.type)}</span></td>
+  <td style="font-weight:600">${esc(j.worker||'—')}</td>
+  <td style="font-family:monospace;font-size:11px">${wo?esc(wo.orderId):'—'}</td>
+  <td style="font-family:monospace">${esc(j.qty||'1')} ${esc(j.unit||'')}</td>
+  <td style="font-family:monospace;font-weight:700">${fmtF(j.amount)}</td>
+  <td><span class="badge ${j.paidBy===pA?'bb':'bp'}">${esc(j.paidBy||'—')}</span></td>
+  <td><span class="badge ${j.status==='Paid'?'bgg':'bgr'}" onclick="toggleLabourStatus('${j.id}')" style="cursor:pointer">${esc(j.status||'Pending')}</span></td>
+  <td><button class="btn btn-ghost btn-sm" onclick="delLabour('${j.id}')">🗑</button></td>
+  </tr>`;
+}).join(''):'<tr><td colspan="9"><div class="empty" style="padding:24px"><div class="ei">🔨</div><h3>Koi kaam entry nahi</h3></div></td></tr>'}
+</table></div></div>`;
+};
+
+// ══════════════════════════════════════════════════════
+// UDHAR KHATA PAGE
+// ══════════════════════════════════════════════════════
+PAGES.udhar=function(){
+  const udhars=[...DB.udhars].reverse();
+  const totalUdhar=DB.udhars.filter(u=>u.type==='udhar').reduce((s,u)=>s+(parseFloat(u.amount)||0),0);
+  const totalWapas=DB.udhars.filter(u=>u.type==='wapas').reduce((s,u)=>s+(parseFloat(u.amount)||0),0);
+  const baaki=totalUdhar-totalWapas;
+  // Group by vendor/person
+  const byPerson={};
+  DB.udhars.forEach(u=>{
+    const k=u.person||'Unknown';
+    if(!byPerson[k]) byPerson[k]={udhar:0,wapas:0,entries:[]};
+    if(u.type==='udhar') byPerson[k].udhar+=(parseFloat(u.amount)||0);
+    else byPerson[k].wapas+=(parseFloat(u.amount)||0);
+    byPerson[k].entries.push(u);
+  });
+  return `
+<div class="sec-hdr">
+  <div><div class="sec-ttl">📒 Udhar Khata</div><div class="sec-sub">Material, Hardware, Raw Material on credit</div></div>
+  <div style="display:flex;gap:8px">
+    <button class="btn btn-ghost btn-sm" onclick="showAddUdhar('wapas')">✅ Wapas Kiya</button>
+    <button class="btn btn-red" onclick="showAddUdhar('udhar')">+ Udhar Aaya</button>
+  </div>
+</div>
+<div class="stats" style="grid-template-columns:repeat(3,1fr)">
+  <div class="stat red"><div class="stat-l">Total Udhar</div><div class="stat-v">${fmtM(totalUdhar)}</div></div>
+  <div class="stat green"><div class="stat-l">Wapas Kiya</div><div class="stat-v">${fmtM(totalWapas)}</div></div>
+  <div class="stat amber"><div class="stat-l">Baaki Dena Hai</div><div class="stat-v">${fmtM(baaki)}</div></div>
+</div>
+${Object.keys(byPerson).length?Object.entries(byPerson).map(([person,data])=>{
+  const bal=data.udhar-data.wapas;
+  return`<div class="card card-p" style="margin-bottom:10px">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+    <div>
+      <div style="font-size:15px;font-weight:800">${esc(person)}</div>
+      <div style="font-size:11px;color:var(--t3)">Vendor / Supplier</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <div class="stat amber" style="margin:0;min-width:90px"><div class="stat-l">Udhar</div><div class="stat-v" style="font-size:15px">${fmtM(data.udhar)}</div></div>
+      <div class="stat green" style="margin:0;min-width:90px"><div class="stat-l">Wapas</div><div class="stat-v" style="font-size:15px">${fmtM(data.wapas)}</div></div>
+      <div class="stat ${bal>0?'red':'teal'}" style="margin:0;min-width:90px"><div class="stat-l">Baaki</div><div class="stat-v" style="font-size:15px">${fmtM(bal)}</div></div>
+    </div>
+  </div>
+  ${data.entries.slice(0,5).map(u=>`
+  <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #F5F6FA">
+    <span class="badge ${u.type==='udhar'?'bgr':'bgg'}">${u.type==='udhar'?'↑ Udhar':'↓ Wapas'}</span>
+    <div style="flex:1"><span style="font-weight:600">${esc(u.item||'—')}</span><span style="font-size:11px;color:var(--t3);margin-left:6px">${fmt(u.date)}</span></div>
+    <span style="font-family:monospace;font-weight:700;color:${u.type==='udhar'?'var(--red)':'var(--green)'}">${fmtF(u.amount)}</span>
+    <button class="btn btn-ghost btn-sm" onclick="delUdhar('${u.id}')">🗑</button>
+  </div>`).join('')}
+  </div>`;
+}).join(''):'<div class="empty"><div class="ei">📒</div><h3>Koi udhar entry nahi</h3><p>Jab koi material/hardware udhar aaye tab entry karo</p></div>'}`;
+};
+
+// ══════════════════════════════════════════════════════
+// FIXED EXPENSES (RENT, BILLS) PAGE
+// ══════════════════════════════════════════════════════
+PAGES.fixedexp=function(){
+  const bills=[...DB.fixedBills].reverse();
+  const thisMonth=new Date().toISOString().slice(0,7);
+  const monthBills=DB.fixedBills.filter(b=>b.month===thisMonth);
+  const monthTotal=monthBills.reduce((s,b)=>s+(parseFloat(b.amount)||0),0);
+  const allTotal=DB.fixedBills.reduce((s,b)=>s+(parseFloat(b.amount)||0),0);
+  const pA=DB.settings.partnerA||'Arman', pB=DB.settings.partnerB||'Vishal';
+  // Group by type
+  const byType={};
+  DB.fixedBills.forEach(b=>{
+    if(!byType[b.billType]) byType[b.billType]=0;
+    byType[b.billType]+=(parseFloat(b.amount)||0);
+  });
+  return `
+<div class="sec-hdr">
+  <div><div class="sec-ttl">🏠 Rent & Fixed Bills</div><div class="sec-sub">Is mahine: ${fmtF(monthTotal)}</div></div>
+  <button class="btn btn-red" onclick="showAddBill()">+ Add Bill</button>
+</div>
+<div class="stats" style="grid-template-columns:repeat(3,1fr)">
+  <div class="stat blue"><div class="stat-l">Is Mahine</div><div class="stat-v">${fmtM(monthTotal)}</div></div>
+  <div class="stat red"><div class="stat-l">Total Abhi Tak</div><div class="stat-v">${fmtM(allTotal)}</div></div>
+  <div class="stat amber"><div class="stat-l">Bill Types</div><div class="stat-v">${Object.keys(byType).length}</div></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+  <div class="card card-p">
+    <div class="sec-ttl" style="margin-bottom:10px">Bill Type Summary</div>
+    ${Object.entries(byType).sort((a,b)=>b[1]-a[1]).map(([type,amt])=>`
+    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F5F6FA">
+      <span style="font-weight:600">${esc(type)}</span>
+      <span style="font-family:monospace;font-weight:700;color:var(--red)">${fmtF(amt)}</span>
+    </div>`).join('')||'<p style="color:var(--t3);font-size:12px">No data</p>'}
+  </div>
+  <div class="card card-p">
+    <div class="sec-ttl" style="margin-bottom:10px">Is Mahine (${thisMonth})</div>
+    ${monthBills.length?monthBills.map(b=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #F5F6FA">
+      <div><div style="font-weight:600;font-size:13px">${esc(b.billType)}</div><div style="font-size:11px;color:var(--t3)">${esc(b.note||'')}</div></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-family:monospace;font-weight:700;color:var(--red)">${fmtF(b.amount)}</span>
+        <button class="btn btn-ghost btn-sm" onclick="delBill('${b.id}')">🗑</button>
+      </div>
+    </div>`).join(''):'<div class="empty" style="padding:20px"><p>Is mahine koi bill nahi</p></div>'}
+  </div>
+</div>
+<div class="card">
+  <div class="tw"><table>
+  <tr><th>Month</th><th>Bill Type</th><th>Amount</th><th>Paid By</th><th>Note</th><th></th></tr>
+  ${bills.length?bills.map(b=>`<tr>
+  <td style="font-family:monospace;font-size:12px">${esc(b.month)}</td>
+  <td><span class="badge ba">${esc(b.billType)}</span></td>
+  <td style="font-family:monospace;font-weight:700;color:var(--red)">${fmtF(b.amount)}</td>
+  <td><span class="badge ${b.paidBy===pA?'bb':'bp'}">${esc(b.paidBy||'—')}</span></td>
+  <td style="font-size:12px;color:var(--t2)">${esc(b.note||'—')}</td>
+  <td><button class="btn btn-ghost btn-sm" onclick="delBill('${b.id}')">🗑</button></td>
+  </tr>`).join(''):'<tr><td colspan="6"><div class="empty" style="padding:24px"><div class="ei">🏠</div><h3>Koi bill nahi</h3></div></td></tr>'}
   </table></div>
 </div>`;
 };
@@ -1521,6 +1701,181 @@ function saveSettings(){
   DB.save('settings');toast('Settings saved ✓');
   document.getElementById('partner-a').textContent=s.partnerA;
   document.getElementById('partner-b').textContent=s.partnerB;
+}
+
+// ══════════════════════════════════════════════════════
+// LABOUR ACTIONS
+// ══════════════════════════════════════════════════════
+function showAddLabour(){
+  const pA=DB.settings.partnerA||'Arman', pB=DB.settings.partnerB||'Vishal';
+  const woOpts=DB.workOrders.filter(w=>w.status==='Active').map(w=>`<option value="${w.id}">${esc(w.orderId)} — ${esc(w.vehicleType||'')}</option>`).join('');
+  const typeOpts=(DB.cms.labourTypes||[]).map(t=>`<option value="${esc(t.name)}" data-rate="${t.rate}" data-unit="${esc(t.unit)}">${esc(t.name)} (${esc(t.unit)})</option>`).join('');
+  modal(`<div class="modal"><div class="mh"><div class="mt">🔨 Kaam Entry</div><button class="xbtn" onclick="closeModal()">×</button></div><div class="mb2">
+<div class="g2">
+  <div class="fg"><label>Kaam Type *</label>
+    <select id="lb-type" onchange="autoFillLabourRate(this)">
+      <option value="">Select Type...</option>${typeOpts}
+      <option value="Other">Other (Manual)</option>
+    </select>
+  </div>
+  <div class="fg"><label>Worker Name</label><input id="lb-worker" placeholder="Kaun ne kiya?"></div>
+  <div class="fg"><label>Date</label><input id="lb-date" type="date" value="${today()}"></div>
+  <div class="fg"><label>Work Order</label><select id="lb-wo"><option value="">General</option>${woOpts}</select></div>
+  <div class="fg"><label>Qty / Hours</label><input id="lb-qty" type="number" value="1" placeholder="e.g. 2 hours"></div>
+  <div class="fg"><label>Unit</label><input id="lb-unit" placeholder="per hour / per body" id="lb-unit"></div>
+  <div class="fg"><label>Rate (₹) per unit</label><input id="lb-rate" type="number" placeholder="Rate" oninput="calcLabourTotal()"></div>
+  <div class="fg"><label>Total Amount (₹) *</label><input id="lb-amount" type="number" placeholder="Auto ya manual"></div>
+  <div class="fg"><label>Paid By</label><select id="lb-paidby"><option>${pA}</option><option>${pB}</option></select></div>
+</div>
+<div class="fg"><label>Note</label><input id="lb-note" placeholder="Optional"></div>
+<div style="padding:10px;background:#FEF3C7;border-radius:8px;font-size:12.5px;color:#92400E">
+  💡 Status "Pending" se save hoga — baad mein tap karke "Paid" mark kar sakte ho
+</div>
+</div><div class="mf"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-red" onclick="saveLabour()">Save Kaam</button></div></div>`);
+}
+
+function autoFillLabourRate(sel){
+  const opt=sel.options[sel.selectedIndex];
+  const rate=opt.dataset.rate||0;
+  const unit=opt.dataset.unit||'';
+  const rateEl=document.getElementById('lb-rate');
+  const unitEl=document.getElementById('lb-unit');
+  if(rateEl&&parseFloat(rate)>0) rateEl.value=rate;
+  if(unitEl) unitEl.value=unit;
+  calcLabourTotal();
+}
+
+function calcLabourTotal(){
+  const qty=parseFloat(document.getElementById('lb-qty')?.value)||1;
+  const rate=parseFloat(document.getElementById('lb-rate')?.value)||0;
+  const amtEl=document.getElementById('lb-amount');
+  if(amtEl&&rate>0) amtEl.value=(qty*rate).toFixed(0);
+}
+
+function saveLabour(){
+  const type=document.getElementById('lb-type').value;
+  const amount=parseFloat(document.getElementById('lb-amount').value)||0;
+  if(!type||!amount){toast('Type aur Amount required','err');return;}
+  const j={id:DB.uid('LB'),date:document.getElementById('lb-date').value,type,worker:document.getElementById('lb-worker').value.trim(),woId:document.getElementById('lb-wo').value,qty:document.getElementById('lb-qty').value,unit:document.getElementById('lb-unit')?.value||'',rate:document.getElementById('lb-rate').value,amount,paidBy:document.getElementById('lb-paidby').value,note:document.getElementById('lb-note').value.trim(),status:'Pending',createdAt:now()};
+  DB.labourJobs.push(j);
+  DB.log('Labour','ADD',type+' ₹'+amount);
+  DB.save('labourJobs');
+  // Also add to costs for P&L tracking
+  DB.costs.push({id:DB.uid('CT'),date:j.date,amount,ctype:'labour',category:'Labour — '+type,vendor:j.worker,woId:j.woId,paidBy:j.paidBy,remark:j.note,createdAt:now()});
+  DB.save('costs');
+  toast('Kaam saved ✓');closeModal();goPage('labourwork');
+}
+
+function toggleLabourStatus(id){
+  const j=DB.labourJobs.find(x=>x.id===id);
+  if(!j)return;
+  j.status=j.status==='Paid'?'Pending':'Paid';
+  DB.save('labourJobs');
+  goPage('labourwork');
+}
+
+function delLabour(id){
+  confirm2('Delete this kaam entry?',()=>{
+    DB.labourJobs=DB.labourJobs.filter(x=>x.id!==id);
+    DB.save('labourJobs');goPage('labourwork');
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// UDHAR ACTIONS
+// ══════════════════════════════════════════════════════
+function showAddUdhar(type='udhar'){
+  const vOpts=DB.vendors.map(v=>`<option value="${esc(v.name)}">${esc(v.name)}</option>`).join('');
+  const woOpts=DB.workOrders.filter(w=>w.status==='Active').map(w=>`<option value="${w.id}">${esc(w.orderId)}</option>`).join('');
+  modal(`<div class="modal"><div class="mh"><div class="mt">${type==='udhar'?'📒 Udhar Aaya':'✅ Udhar Wapas Kiya'}</div><button class="xbtn" onclick="closeModal()">×</button></div><div class="mb2">
+<div class="g2">
+  <div class="fg"><label>Vendor / Person *</label>
+    <input id="ud-person" list="ud-person-list" placeholder="Vendor naam">
+    <datalist id="ud-person-list">${vOpts}</datalist>
+  </div>
+  <div class="fg"><label>Date</label><input id="ud-date" type="date" value="${today()}"></div>
+  <div class="fg"><label>Item / Material</label><input id="ud-item" placeholder="Steel sheet, Paint, Hardware..."></div>
+  <div class="fg"><label>Amount (₹) *</label><input id="ud-amount" type="number"></div>
+  <div class="fg"><label>Work Order</label><select id="ud-wo"><option value="">General</option>${woOpts}</select></div>
+  <div class="fg"><label>Category</label>
+    <select id="ud-cat">
+      <option>Raw Material</option><option>Hardware</option><option>Paint</option>
+      <option>Electrical</option><option>Tools</option><option>Other</option>
+    </select>
+  </div>
+</div>
+<div class="fg"><label>Note</label><input id="ud-note" placeholder="Optional"></div>
+</div><div class="mf"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+<button class="btn ${type==='udhar'?'btn-red':'btn-green'}" onclick="saveUdhar('${type}')">Save</button></div></div>`);
+}
+
+function saveUdhar(type){
+  const person=document.getElementById('ud-person').value.trim();
+  const amount=parseFloat(document.getElementById('ud-amount').value)||0;
+  if(!person||!amount){toast('Person aur Amount required','err');return;}
+  const u={id:DB.uid('UD'),type,person,date:document.getElementById('ud-date').value,item:document.getElementById('ud-item').value.trim(),amount,woId:document.getElementById('ud-wo').value,category:document.getElementById('ud-cat').value,note:document.getElementById('ud-note').value.trim(),createdAt:now()};
+  DB.udhars.push(u);
+  DB.log('Udhar',type==='udhar'?'ADD':'WAPAS',person+' ₹'+amount);
+  DB.save('udhars');
+  // If udhar came in — add to costs
+  if(type==='udhar'){
+    DB.costs.push({id:DB.uid('CT'),date:u.date,amount,ctype:'raw_material',category:u.category+' (Udhar)',vendor:person,woId:u.woId,paidBy:'Udhar',remark:u.item||u.note,createdAt:now()});
+    DB.save('costs');
+  }
+  toast(type==='udhar'?'Udhar entry saved ✓':'Wapas entry saved ✓');
+  closeModal();goPage('udhar');
+}
+
+function delUdhar(id){
+  confirm2('Delete udhar entry?',()=>{
+    DB.udhars=DB.udhars.filter(x=>x.id!==id);
+    DB.save('udhars');goPage('udhar');
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// FIXED BILLS ACTIONS
+// ══════════════════════════════════════════════════════
+function showAddBill(){
+  const pA=DB.settings.partnerA||'Arman', pB=DB.settings.partnerB||'Vishal';
+  const billTypes=(DB.cms.fixedBillTypes||['Garage Rent','Electricity Bill','Water Bill','Internet/Mobile','Insurance','Other Fixed']);
+  const thisMonth=new Date().toISOString().slice(0,7);
+  modal(`<div class="modal"><div class="mh"><div class="mt">🏠 Bill Add Karo</div><button class="xbtn" onclick="closeModal()">×</button></div><div class="mb2">
+<div class="g2">
+  <div class="fg"><label>Bill Type *</label>
+    <select id="bl-type">
+      ${billTypes.map(t=>`<option>${esc(t)}</option>`).join('')}
+    </select>
+  </div>
+  <div class="fg"><label>Month</label><input id="bl-month" type="month" value="${thisMonth}"></div>
+  <div class="fg"><label>Amount (₹) *</label><input id="bl-amount" type="number" placeholder="e.g. 15000"></div>
+  <div class="fg"><label>Paid By</label><select id="bl-paidby"><option>${pA}</option><option>${pB}</option></select></div>
+</div>
+<div class="fg"><label>Note / Receipt No</label><input id="bl-note" placeholder="Optional"></div>
+</div><div class="mf"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-red" onclick="saveBill()">Save Bill</button></div></div>`);
+}
+
+function saveBill(){
+  const billType=document.getElementById('bl-type').value;
+  const amount=parseFloat(document.getElementById('bl-amount').value)||0;
+  if(!amount){toast('Amount bharo','err');return;}
+  const month=document.getElementById('bl-month').value;
+  const paidBy=document.getElementById('bl-paidby').value;
+  const b={id:DB.uid('BL'),billType,month,amount,paidBy,note:document.getElementById('bl-note').value.trim(),createdAt:now()};
+  DB.fixedBills.push(b);
+  DB.log('Bills','ADD',billType+' ₹'+amount+' ('+month+')');
+  DB.save('fixedBills');
+  // Add to costs for P&L
+  DB.costs.push({id:DB.uid('CT'),date:month+'-01',amount,ctype:'other',category:billType,vendor:'',woId:'',paidBy,remark:b.note,createdAt:now()});
+  DB.save('costs');
+  toast('Bill saved ✓');closeModal();goPage('fixedexp');
+}
+
+function delBill(id){
+  confirm2('Delete this bill?',()=>{
+    DB.fixedBills=DB.fixedBills.filter(x=>x.id!==id);
+    DB.save('fixedBills');goPage('fixedexp');
+  });
 }
 
 function showHistory(){
