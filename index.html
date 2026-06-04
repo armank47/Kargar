@@ -2,8 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>KARGAR V2</title>
+<meta name="description" content="Kargar Body Works Management System">
+<meta name="theme-color" content="#E8193C">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KARGAR">
+<link rel="manifest" href="manifest.json">
+<!-- PWA Icons -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='32' fill='%23E8193C'/><text y='130' x='50%' text-anchor='middle' font-size='100' font-family='Arial Black' fill='white'>K</text></svg>">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#F0F2F8;color:#0D0D16;height:100vh;display:flex;overflow:hidden;font-size:14px}
@@ -218,18 +227,58 @@ canvas{display:block;max-width:100%}
 </head>
 <body>
 
-<!-- SETUP SCREEN -->
-<div id="setup" style="position:fixed;inset:0;background:linear-gradient(135deg,#0D0D16 0%,#171724 60%,#1a0810 100%);display:flex;align-items:center;justify-content:center;z-index:9999">
-  <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:44px 48px;max-width:440px;width:92%;text-align:center">
+<!-- LOGIN SCREEN -->
+<div id="login-screen" style="position:fixed;inset:0;background:linear-gradient(135deg,#0D0D16 0%,#171724 60%,#1a0810 100%);display:flex;align-items:center;justify-content:center;z-index:9999">
+  <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:40px 44px;max-width:420px;width:92%;text-align:center">
     <div style="font-size:52px;font-weight:900;color:#E8193C;letter-spacing:4px;line-height:1">KARGAR</div>
-    <div style="display:inline-block;background:#E8193C;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:1px;margin:4px 0 6px">V2</div>
+    <div style="display:inline-block;background:#E8193C;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:1px;margin:4px 0 4px">V2</div>
     <div style="color:rgba(255,255,255,.25);font-size:10px;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:28px">Body Works Management System</div>
-    <div style="font-size:44px;margin-bottom:18px">🚛</div>
+    <div style="font-size:40px;margin-bottom:20px">🚛</div>
+    <!-- LOGIN FORM -->
+    <div id="login-form">
+      <div style="text-align:left;margin-bottom:14px">
+        <label style="display:block;color:rgba(255,255,255,.4);font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px">Email</label>
+        <input id="l-email" type="email" placeholder="apna@email.com" style="width:100%;padding:12px 14px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.12);border-radius:9px;color:#fff;font-size:14px;font-family:inherit;outline:none" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div style="text-align:left;margin-bottom:20px">
+        <label style="display:block;color:rgba(255,255,255,.4);font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px">Password</label>
+        <input id="l-pass" type="password" placeholder="••••••••" style="width:100%;padding:12px 14px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.12);border-radius:9px;color:#fff;font-size:14px;font-family:inherit;outline:none" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div id="l-err" style="color:#FF6B6B;font-size:12.5px;margin-bottom:12px;display:none"></div>
+      <button onclick="doLogin()" id="l-btn" style="background:#E8193C;color:#fff;border:none;padding:14px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;width:100%;font-family:inherit;transition:.15s">Login Karo</button>
+      <div style="margin-top:16px;text-align:center">
+        <span style="color:rgba(255,255,255,.25);font-size:12px">Account nahi hai? &nbsp;</span>
+        <span onclick="showSignup()" style="color:#E8193C;font-size:12px;font-weight:700;cursor:pointer;text-decoration:underline">Sign Up</span>
+      </div>
+    </div>
+    <!-- SIGNUP FORM -->
+    <div id="signup-form" style="display:none">
+      <div style="color:#fff;font-size:15px;font-weight:700;margin-bottom:16px">New Account Banao</div>
+      <div style="text-align:left;margin-bottom:12px">
+        <label style="display:block;color:rgba(255,255,255,.4);font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px">Email</label>
+        <input id="s-email" type="email" placeholder="apna@email.com" style="width:100%;padding:12px 14px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.12);border-radius:9px;color:#fff;font-size:14px;font-family:inherit;outline:none">
+      </div>
+      <div style="text-align:left;margin-bottom:20px">
+        <label style="display:block;color:rgba(255,255,255,.4);font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px">Password</label>
+        <input id="s-pass" type="password" placeholder="Min 6 characters" style="width:100%;padding:12px 14px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.12);border-radius:9px;color:#fff;font-size:14px;font-family:inherit;outline:none">
+      </div>
+      <div id="s-err" style="color:#FF6B6B;font-size:12.5px;margin-bottom:12px;display:none"></div>
+      <button onclick="doSignup()" style="background:#E8193C;color:#fff;border:none;padding:14px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;width:100%;font-family:inherit">Account Banao</button>
+      <div style="margin-top:14px;text-align:center">
+        <span onclick="showLogin()" style="color:rgba(255,255,255,.4);font-size:12px;cursor:pointer">← Wapas Login pe</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SETUP SCREEN (for storage choice after login) -->
+<div id="setup" style="position:fixed;inset:0;background:linear-gradient(135deg,#0D0D16 0%,#171724 60%,#1a0810 100%);display:flex;align-items:center;justify-content:center;z-index:9998;display:none">
+  <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:44px 48px;max-width:440px;width:92%;text-align:center">
+    <div style="font-size:44px;margin-bottom:18px">💾</div>
     <div style="color:#fff;font-size:18px;font-weight:700;margin-bottom:8px">Data Kahan Save Karna Hai?</div>
-    <div style="color:rgba(255,255,255,.35);font-size:12.5px;line-height:1.7;margin-bottom:28px">Folder select karo to data JSON files mein save hoga.<br>Pehle se data hai to same folder dobara select karo.</div>
-    <button onclick="setupFolder()" style="background:#E8193C;color:#fff;border:none;padding:14px 24px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;width:100%;font-family:inherit;margin-bottom:10px">📂 Folder Select Karo</button>
-    <button onclick="setupLocal()" style="background:rgba(255,255,255,.07);color:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.1);padding:13px 24px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;width:100%;font-family:inherit">💾 Browser Memory Use Karo</button>
-    <div style="color:rgba(255,255,255,.15);font-size:11px;margin-top:18px;line-height:1.7">Chrome 86+ / Edge 86+ required for folder<br>Pehle se data hai to same folder select karo — auto-load hoga</div>
+    <div style="color:rgba(255,255,255,.35);font-size:12.5px;line-height:1.7;margin-bottom:28px">Cloud (Supabase) mein pehle se save hai.<br>Local folder bhi use kar sakte ho additional backup ke liye.</div>
+    <button onclick="setupFolder()" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.15);padding:13px 24px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;width:100%;font-family:inherit;margin-bottom:10px">📂 Local Folder Bhi Select Karo</button>
+    <button onclick="setupLocal()" style="background:#E8193C;color:#fff;border:none;padding:14px 24px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;width:100%;font-family:inherit">☁️ Sirf Cloud Use Karo (Recommended)</button>
   </div>
 </div>
 
@@ -283,6 +332,8 @@ canvas{display:block;max-width:100%}
       <button class="btn btn-ghost btn-sm topbar-mobile-show" onclick="showHistory()">📜</button>
       <button class="btn btn-green btn-sm topbar-mobile-show" onclick="showExport()">📊</button>
       <button class="btn btn-ghost btn-sm topbar-mobile-show" onclick="showBackup()">💾</button>
+      <button class="btn btn-ghost btn-sm topbar-mobile-show" onclick="doLogout()" title="Logout" style="color:var(--red)">⏻</button>
+      <span id="user-email" style="font-size:10px;color:var(--t3);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
       <span id="page-date" style="font-size:11px;color:var(--t3)"></span>
     </div>
   </div>
@@ -300,11 +351,88 @@ canvas{display:block;max-width:100%}
 const SUPA_URL = 'https://ytpximniajvrtbuiodkn.supabase.co';
 const SUPA_KEY = 'sb_publishable_AGq2eXQo1jFldJAHSgIBKg_aH5bKmEI';
 
+// ─── AUTH ───────────────────────────────────────────────
+const Auth = {
+  token: null,
+  user: null,
+
+  async login(email, password){
+    try{
+      const r=await fetch(SUPA_URL+'/auth/v1/token?grant_type=password',{
+        method:'POST',
+        headers:{'apikey':SUPA_KEY,'Content-Type':'application/json'},
+        body:JSON.stringify({email,password})
+      });
+      const d=await r.json();
+      if(!r.ok) return {error:d.error_description||d.msg||'Login failed'};
+      this.token=d.access_token;
+      this.user=d.user;
+      localStorage.setItem('kg2_token',d.access_token);
+      localStorage.setItem('kg2_refresh',d.refresh_token);
+      return {ok:true};
+    }catch(e){ return {error:'Network error. Internet check karo.'}; }
+  },
+
+  async signup(email, password){
+    try{
+      const r=await fetch(SUPA_URL+'/auth/v1/signup',{
+        method:'POST',
+        headers:{'apikey':SUPA_KEY,'Content-Type':'application/json'},
+        body:JSON.stringify({email,password})
+      });
+      const d=await r.json();
+      if(!r.ok) return {error:d.error_description||d.msg||'Signup failed'};
+      if(d.access_token){ this.token=d.access_token; this.user=d.user; localStorage.setItem('kg2_token',d.access_token); localStorage.setItem('kg2_refresh',d.refresh_token||''); }
+      return {ok:true, needsConfirm:!d.access_token};
+    }catch(e){ return {error:'Network error.'}; }
+  },
+
+  async refresh(){
+    const rt=localStorage.getItem('kg2_refresh');
+    if(!rt) return false;
+    try{
+      const r=await fetch(SUPA_URL+'/auth/v1/token?grant_type=refresh_token',{
+        method:'POST',
+        headers:{'apikey':SUPA_KEY,'Content-Type':'application/json'},
+        body:JSON.stringify({refresh_token:rt})
+      });
+      const d=await r.json();
+      if(!r.ok) return false;
+      this.token=d.access_token;
+      this.user=d.user;
+      localStorage.setItem('kg2_token',d.access_token);
+      localStorage.setItem('kg2_refresh',d.refresh_token||rt);
+      return true;
+    }catch(e){ return false; }
+  },
+
+  async tryAutoLogin(){
+    const t=localStorage.getItem('kg2_token');
+    if(!t) return false;
+    this.token=t;
+    // Try to refresh to verify it's valid
+    const ok=await this.refresh();
+    return ok;
+  },
+
+  logout(){
+    this.token=null; this.user=null;
+    localStorage.removeItem('kg2_token');
+    localStorage.removeItem('kg2_refresh');
+  },
+
+  getHeaders(){
+    const h={'apikey':SUPA_KEY,'Content-Type':'application/json'};
+    if(this.token) h['Authorization']='Bearer '+this.token;
+    return h;
+  }
+};
+
 const SB = {
   async get(){ 
     try{
       const r=await fetch(SUPA_URL+'/rest/v1/kargar_data?id=eq.main&select=*',{
-        headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}
+        headers:Auth.getHeaders()
       });
       if(!r.ok)return null;
       const d=await r.json();
@@ -330,7 +458,7 @@ const SB = {
       };
       const r=await fetch(SUPA_URL+'/rest/v1/kargar_data',{
         method:'POST',
-        headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},
+        headers:{...Auth.getHeaders(),'Prefer':'resolution=merge-duplicates'},
         body:JSON.stringify(payload)
       });
       return r.ok;
@@ -436,6 +564,53 @@ function confirm2(msg,cb){ modal('<div class="modal"><div class="mh"><div class=
 
 // ─── ROUTER ────────────────────────────────────────────
 const PAGES = {};
+// ─── LOGIN / SIGNUP / LOGOUT ───────────────────────────
+function showLogin(){ document.getElementById('login-form').style.display=''; document.getElementById('signup-form').style.display='none'; }
+function showSignup(){ document.getElementById('login-form').style.display='none'; document.getElementById('signup-form').style.display=''; }
+
+async function doLogin(){
+  const email=document.getElementById('l-email').value.trim();
+  const pass=document.getElementById('l-pass').value;
+  const err=document.getElementById('l-err');
+  const btn=document.getElementById('l-btn');
+  if(!email||!pass){ err.textContent='Email aur password dono bharo'; err.style.display=''; return; }
+  btn.textContent='Login ho raha hai...'; btn.disabled=true;
+  const res=await Auth.login(email,pass);
+  btn.textContent='Login Karo'; btn.disabled=false;
+  if(res.error){ err.textContent=res.error; err.style.display=''; return; }
+  err.style.display='none';
+  afterLogin();
+}
+
+async function doSignup(){
+  const email=document.getElementById('s-email').value.trim();
+  const pass=document.getElementById('s-pass').value;
+  const err=document.getElementById('s-err');
+  if(!email||!pass){ err.textContent='Email aur password dono bharo'; err.style.display=''; return; }
+  if(pass.length<6){ err.textContent='Password kam se kam 6 characters ka hona chahiye'; err.style.display=''; return; }
+  const res=await Auth.signup(email,pass);
+  if(res.error){ err.textContent=res.error; err.style.display=''; return; }
+  if(res.needsConfirm){
+    err.style.color='#00C48C'; err.textContent='✅ Account bana! Email check karo — confirmation link aaya hoga. Phir login karo.'; err.style.display=''; 
+    setTimeout(()=>showLogin(),3000);
+    return;
+  }
+  err.style.display='none';
+  afterLogin();
+}
+
+function afterLogin(){
+  document.getElementById('login-screen').style.display='none';
+  if(Auth.user) document.getElementById('user-email').textContent=Auth.user.email||'';
+  setupLocal(); // boot app
+}
+
+function doLogout(){
+  if(!confirm('Logout karna chahte ho?')) return;
+  Auth.logout();
+  location.reload();
+}
+
 function toggleSidebar(){
   const sb=document.getElementById('sidebar');
   const ov=document.getElementById('sidebar-overlay');
@@ -1547,31 +1722,59 @@ function setupLocal(){
 }
 
 document.addEventListener('DOMContentLoaded',async function(){
-  // Try auto-reconnect to previously used folder
-  const folderOk=await FS.tryAutoConnect();
-  if(folderOk){
-    await loadFromFolder();
-    launchApp();
-    return;
-  }
-  // Check if localStorage has existing data — auto-boot
-  const hasData=localStorage.getItem('kg2_workOrders');
-  if(hasData){
-    DB.load();
+  // 1. Try auto-login with saved token
+  const loggedIn=await Auth.tryAutoLogin();
+  if(loggedIn){
+    if(Auth.user) document.getElementById('user-email').textContent=Auth.user.email||'';
+    // Try folder reconnect
+    const folderOk=await FS.tryAutoConnect();
+    if(folderOk){ await loadFromFolder(); }
+    else {
+      DB.load();
+      await DB.loadFromSupabase();
+    }
+    document.getElementById('login-screen').style.display='none';
     await launchApp();
     return;
   }
-  // Fresh install — try Supabase first
-  setDot('saving');
-  const supaOk=await DB.loadFromSupabase();
-  if(supaOk&&DB.workOrders.length>0){
-    // Has data on Supabase — auto boot
-    await launchApp();
-    return;
-  }
+  // 2. No valid token — show login screen
   setDot('ok');
-  // Show setup screen for new users
+  // login-screen is already visible by default
 });
+
+
+// ─── PWA SERVICE WORKER ─────────────────────────────────
+if('serviceWorker' in navigator){
+  const swCode=`
+const CACHE='kargar-v2';
+const URLS=['/'];
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(URLS))));
+self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));
+  `;
+  const blob=new Blob([swCode],{type:'application/javascript'});
+  navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
+}
+
+// ─── PWA MANIFEST (inline) ──────────────────────────────
+(function(){
+  const manifest={
+    name:'KARGAR V2 — Body Works',short_name:'KARGAR',
+    description:'Kargar Body Works Management System',
+    start_url:'./',display:'standalone',
+    background_color:'#0D0D16',theme_color:'#E8193C',
+    orientation:'any',
+    icons:[
+      {src:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="32" fill="%23E8193C"/><text y="130" x="50%25" text-anchor="middle" font-size="100" font-family="Arial Black" fill="white">K</text></svg>',sizes:'192x192',type:'image/svg+xml'},
+      {src:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="80" fill="%23E8193C"/><text y="360" x="50%25" text-anchor="middle" font-size="280" font-family="Arial Black" fill="white">K</text></svg>',sizes:'512x512',type:'image/svg+xml'}
+    ]
+  };
+  const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
+  const link=document.createElement('link');
+  link.rel='manifest';link.href=URL.createObjectURL(blob);
+  // Replace the manifest link if exists
+  const existing=document.querySelector('link[rel="manifest"]');
+  if(existing) existing.href=link.href; else document.head.appendChild(link);
+})();
 </script>
 </body>
 </html>
