@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KARGAR V2</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#F0F2F8;color:#0D0D16;height:100vh;display:flex;overflow:hidden;font-size:14px}
+:root{--red:#E8193C;--green:#00C48C;--amber:#F5A623;--blue:#4070FF;--purple:#8B5CF6;--teal:#06B6D4;--dark:#0D0D16;--dark2:#171724;--border:#E4E7F0;--card:#fff;--t2:#4A5068;--t3:#9098B1;--r:10px}
+
+/* ── SIDEBAR ── */
+#sidebar{width:210px;background:var(--dark2);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;transition:transform .25s ease;z-index:200}
+.logo{padding:18px 16px 12px;border-bottom:1px solid rgba(255,255,255,.07)}
+.logo-name{font-size:26px;font-weight:900;color:var(--red);letter-spacing:3px}
+.logo-v{background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:4px;vertical-align:middle}
+.logo-sub{font-size:10px;color:rgba(255,255,255,.22);letter-spacing:1.5px;text-transform:uppercase;margin-top:3px}
+.sb-sec{padding:10px 0 2px}
+.sb-lbl{color:rgba(255,255,255,.2);font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:0 14px 4px}
+.sb-item{display:flex;align-items:center;gap:8px;padding:10px 14px;color:rgba(255,255,255,.4);cursor:pointer;font-size:13px;font-weight:500;border-left:2px solid transparent;transition:.1s}
+.sb-item:hover{color:rgba(255,255,255,.8);background:rgba(255,255,255,.04)}
+.sb-item.active{color:#fff;border-left-color:var(--red);background:rgba(232,25,60,.1)}
+.sb-footer{margin-top:auto;padding:12px 14px;border-top:1px solid rgba(255,255,255,.06);font-size:10px;color:rgba(255,255,255,.15)}
+
+/* ── MAIN ── */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+#topbar{height:52px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:10px;flex-shrink:0}
+#page-title{font-size:15px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#content{flex:1;overflow-y:auto;padding:16px}
+
+/* ── HAMBURGER ── */
+#hamburger{display:none;background:none;border:none;cursor:pointer;padding:6px;color:var(--t2)}
+#hamburger span{display:block;width:20px;height:2px;background:currentColor;margin:4px 0;border-radius:2px;transition:.2s}
+#sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199}
+
+/* ── CARDS ── */
+.card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);box-shadow:0 1px 8px rgba(0,0,0,.05)}
+.card-p{padding:14px 16px}
+
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+.stat{background:var(--card);border-radius:var(--r);padding:12px 14px;border:1px solid var(--border);border-top:3px solid}
+.stat.red{border-top-color:var(--red)}.stat.green{border-top-color:var(--green)}.stat.amber{border-top-color:var(--amber)}.stat.blue{border-top-color:var(--blue)}.stat.purple{border-top-color:var(--purple)}.stat.teal{border-top-color:var(--teal)}
+.stat-l{font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.8px}
+.stat-v{font-size:20px;font-weight:800;margin-top:3px}
+.stat.red .stat-v{color:var(--red)}.stat.green .stat-v{color:var(--green)}.stat.amber .stat-v{color:var(--amber)}.stat.blue .stat-v{color:var(--blue)}.stat.purple .stat-v{color:var(--purple)}.stat.teal .stat-v{color:var(--teal)}
+
+/* ── TABLE ── */
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;min-width:500px}
+th{text-align:left;padding:8px 10px;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;background:#F7F8FC;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid #F5F6FA;font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#FAFBFD}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:7px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:.1s;white-space:nowrap}
+.btn-red{background:var(--red);color:#fff}.btn-red:hover{background:#c0102c}
+.btn-ghost{background:transparent;color:var(--t2);border:1px solid var(--border)}.btn-ghost:hover{background:#F0F2F8}
+.btn-green{background:var(--green);color:#fff}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-sm{padding:4px 9px;font-size:11.5px}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:10.5px;font-weight:700}
+.bg{background:#F3F4F6;color:#4B5566}.bb{background:#DBEAFE;color:#1E40AF}.bgr{background:#FEE2E2;color:#B91C1C}.bgg{background:#D1FAE5;color:#065F46}.ba{background:#FEF3C7;color:#92400E}.bp{background:#EDE9FE;color:#5B21B6}
+
+/* ── FORMS ── */
+.fg{margin-bottom:11px}
+.fg label{display:block;font-size:11px;font-weight:700;color:var(--t2);margin-bottom:3px;letter-spacing:.3px}
+.fg input,.fg select,.fg textarea{width:100%;padding:9px 11px;border:1.5px solid var(--border);border-radius:7px;font-size:14px;font-family:inherit;outline:none;transition:.1s;-webkit-appearance:none}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--red)}
+.fg textarea{resize:vertical;min-height:60px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:flex;align-items:flex-start;justify-content:center;padding:20px 12px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.modal{background:var(--card);border-radius:14px;width:100%;max-width:580px;box-shadow:0 8px 32px rgba(0,0,0,.18)}
+.modal-lg{max-width:750px}.modal-xl{max-width:920px}
+.mh{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--card);z-index:1;border-radius:14px 14px 0 0}
+.mt{font-size:15px;font-weight:700}
+.mb2{padding:16px 18px}
+.mf{padding:10px 18px;border-top:1px solid var(--border);display:flex;gap:7px;justify-content:flex-end;flex-wrap:wrap;position:sticky;bottom:0;background:var(--card);border-radius:0 0 14px 14px}
+.xbtn{background:none;border:none;font-size:22px;cursor:pointer;color:var(--t3);line-height:1;padding:2px 6px}
+
+/* ── STATUS ── */
+#status-bar{position:fixed;bottom:10px;right:10px;background:var(--dark2);color:rgba(255,255,255,.6);padding:4px 11px;border-radius:20px;font-size:10px;display:flex;align-items:center;gap:5px;z-index:400}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
+.dot.saving{background:var(--amber);animation:blink 1s infinite}
+.dot.err{background:var(--red)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── TOAST ── */
+.toast-msg{position:fixed;top:14px;right:14px;padding:10px 15px;border-radius:9px;font-size:13px;font-weight:600;z-index:9999;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.2);animation:tin .2s ease;max-width:280px}
+@keyframes tin{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+
+/* ── TRUCK CARD ── */
+.tcard{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:9px;cursor:pointer;transition:.1s;display:flex;align-items:center;gap:12px}
+.tcard:hover{border-color:var(--red);box-shadow:0 2px 10px rgba(232,25,60,.1)}
+.sec-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.sec-ttl{font-size:14px;font-weight:700}
+.sec-sub{font-size:11.5px;color:var(--t3)}
+
+/* ── MISC ── */
+.empty{text-align:center;padding:40px 20px;color:var(--t3)}
+.empty .ei{font-size:36px;margin-bottom:8px}
+.fr{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.fr input,.fr select{padding:7px 10px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit;outline:none;flex:1;min-width:120px}
+.prog{height:6px;background:#F0F2F8;border-radius:3px;overflow:hidden;margin-top:7px}
+.prog-bar{height:100%;border-radius:3px;transition:.3s}
+.pb{border-radius:var(--r);padding:14px 16px;border:1px solid}
+.pb.A{border-color:rgba(232,25,60,.3);background:rgba(232,25,60,.04)}
+.pb.B{border-color:rgba(64,112,255,.3);background:rgba(64,112,255,.04)}
+.pn{font-size:13px;font-weight:700;margin-bottom:8px}
+.pn.A{color:var(--red)}.pn.B{color:var(--blue)}
+.ig{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.il{font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.iv{font-size:13px;font-weight:600;margin-top:2px}
+canvas{display:block;max-width:100%}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE — TABLET (≤900px)
+══════════════════════════════════════════ */
+@media(max-width:900px){
+  #sidebar{width:200px}
+  .stats{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE — MOBILE (≤640px)
+══════════════════════════════════════════ */
+@media(max-width:640px){
+  body{overflow:hidden}
+
+  /* Sidebar slides in as drawer */
+  #sidebar{position:fixed;top:0;left:0;height:100%;transform:translateX(-100%);width:240px;z-index:200}
+  #sidebar.open{transform:translateX(0)}
+  #sidebar-overlay.open{display:block}
+
+  /* Topbar */
+  #hamburger{display:block}
+  #topbar{padding:0 12px;height:50px;gap:8px}
+  #page-title{font-size:14px}
+  /* Hide less important topbar items on mobile */
+  #topbar .btn-sm:not(#btn-menu){display:none}
+  #topbar .badge{display:none}
+  #page-date{display:none}
+
+  /* Show only export + backup + hamburger */
+  .topbar-mobile-show{display:inline-flex!important}
+
+  /* Content */
+  #content{padding:10px}
+
+  /* Stats: 2 columns on mobile */
+  .stats{grid-template-columns:1fr 1fr;gap:8px}
+  .stat-v{font-size:18px}
+
+  /* Dashboard charts: stack */
+  #content [style*="grid-template-columns:1fr 340px"],
+  #content [style*="grid-template-columns:1fr 1fr 1fr"]{
+    display:flex!important;flex-direction:column!important;gap:10px!important
+  }
+  #content [style*="grid-template-columns:320px 1fr"]{
+    display:flex!important;flex-direction:column!important;gap:10px!important
+  }
+  #content [style*="grid-template-columns:1fr 1fr"]:not(.ig):not(.g2){
+    display:flex!important;flex-direction:column!important;gap:10px!important
+  }
+
+  /* Forms: single column */
+  .g2,.g3{grid-template-columns:1fr!important}
+
+  /* Modal: full screen style */
+  .overlay{padding:0;align-items:flex-end}
+  .modal,.modal-lg,.modal-xl{max-width:100%;border-radius:18px 18px 0 0;max-height:92vh;overflow-y:auto}
+  .mh{border-radius:18px 18px 0 0}
+
+  /* Section header: wrap */
+  .sec-hdr{flex-direction:column;align-items:flex-start;gap:8px}
+  .sec-hdr>div:last-child{align-self:stretch}
+  .sec-hdr .btn{width:100%;justify-content:center}
+
+  /* Truck card */
+  .tcard{flex-wrap:wrap}
+  .tcard>button{margin-left:auto}
+
+  /* Filter row */
+  .fr{flex-direction:column}
+  .fr input,.fr select{min-width:unset}
+
+  /* Table: horizontal scroll with hint */
+  .tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tw::after{content:'← Swipe to see more →';display:block;font-size:10px;color:var(--t3);text-align:center;padding:4px 0}
+
+  /* Partner blocks: stack */
+  .pb{margin-bottom:10px}
+
+  /* ig 2-col stays but smaller */
+  .ig{gap:6px}
+
+  /* Status bar: hide on mobile */
+  #status-bar{display:none}
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE — SMALL MOBILE (≤380px)
+══════════════════════════════════════════ */
+@media(max-width:380px){
+  .stats{grid-template-columns:1fr 1fr}
+  .stat-v{font-size:16px}
+  .stat-l{font-size:9px}
+  #content{padding:8px}
+  .card-p{padding:10px 12px}
+}
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div id="setup" style="position:fixed;inset:0;background:linear-gradient(135deg,#0D0D16 0%,#171724 60%,#1a0810 100%);display:flex;align-items:center;justify-content:center;z-index:9999">
+  <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:44px 48px;max-width:440px;width:92%;text-align:center">
+    <div style="font-size:52px;font-weight:900;color:#E8193C;letter-spacing:4px;line-height:1">KARGAR</div>
+    <div style="display:inline-block;background:#E8193C;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:1px;margin:4px 0 6px">V2</div>
+    <div style="color:rgba(255,255,255,.25);font-size:10px;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:28px">Body Works Management System</div>
+    <div style="font-size:44px;margin-bottom:18px">🚛</div>
+    <div style="color:#fff;font-size:18px;font-weight:700;margin-bottom:8px">Data Kahan Save Karna Hai?</div>
+    <div style="color:rgba(255,255,255,.35);font-size:12.5px;line-height:1.7;margin-bottom:28px">Folder select karo to data JSON files mein save hoga.<br>Pehle se data hai to same folder dobara select karo.</div>
+    <button onclick="setupFolder()" style="background:#E8193C;color:#fff;border:none;padding:14px 24px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;width:100%;font-family:inherit;margin-bottom:10px">📂 Folder Select Karo</button>
+    <button onclick="setupLocal()" style="background:rgba(255,255,255,.07);color:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.1);padding:13px 24px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;width:100%;font-family:inherit">💾 Browser Memory Use Karo</button>
+    <div style="color:rgba(255,255,255,.15);font-size:11px;margin-top:18px;line-height:1.7">Chrome 86+ / Edge 86+ required for folder<br>Pehle se data hai to same folder select karo — auto-load hoga</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;width:100%;height:100vh;flex-direction:row">
+<div id="sidebar">
+  <div class="logo">
+    <div><span class="logo-name">KARGAR</span><span class="logo-v">V2</span></div>
+    <div class="logo-sub">Body Works System</div>
+  </div>
+  <div class="sb-sec">
+    <div class="sb-lbl">Overview</div>
+    <div class="sb-item" data-page="dashboard">⚡ Dashboard</div>
+  </div>
+  <div class="sb-sec">
+    <div class="sb-lbl">Production</div>
+    <div class="sb-item" data-page="trucks">🚛 Truck Entry</div>
+    <div class="sb-item" data-page="workorders">🔧 Work Orders</div>
+    <div class="sb-item" data-page="costing">💰 Costing</div>
+    <div class="sb-item" data-page="dailyexpense">⚡ Daily Expense</div>
+    <div class="sb-item" data-page="payments">💳 Payments</div>
+  </div>
+  <div class="sb-sec">
+    <div class="sb-lbl">People</div>
+    <div class="sb-item" data-page="clients">👥 Clients</div>
+    <div class="sb-item" data-page="vendors">🏪 Vendors</div>
+    <div class="sb-item" data-page="contractors">👷 Thekedar</div>
+    <div class="sb-item" data-page="contractorledger">📒 Contractor Ledger</div>
+  </div>
+  <div class="sb-sec">
+    <div class="sb-lbl">Finance</div>
+    <div class="sb-item" data-page="partners">🤜 Partner Ledger</div>
+    <div class="sb-item" data-page="reports">📊 Reports</div>
+  </div>
+  <div class="sb-sec">
+    <div class="sb-lbl">Settings</div>
+    <div class="sb-item" data-page="settings">⚙️ Settings</div>
+  </div>
+  <div class="sb-footer">v2.0 · Kargar Body Works</div>
+</div>
+
+<div id="main">
+  <div id="topbar">
+    <button id="hamburger" onclick="toggleSidebar()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <div id="page-title">Dashboard</div>
+    <div style="display:flex;gap:7px;align-items:center;margin-left:auto">
+      <span id="partner-a" class="badge bb" style="cursor:pointer" onclick="goPage('partners')">Arman</span>
+      <span id="partner-b" class="badge bp" style="cursor:pointer" onclick="goPage('partners')">Vishal</span>
+      <button class="btn btn-ghost btn-sm topbar-mobile-show" onclick="showHistory()">📜</button>
+      <button class="btn btn-green btn-sm topbar-mobile-show" onclick="showExport()">📊</button>
+      <button class="btn btn-ghost btn-sm topbar-mobile-show" onclick="showBackup()">💾</button>
+      <span id="page-date" style="font-size:11px;color:var(--t3)"></span>
+    </div>
+  </div>
+  <div id="content"></div>
+</div>
+
+</div><!-- end #app -->
+<div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<div id="modal-root"></div>
+<div id="status-bar"><span class="dot" id="sdot"></span><span id="stxt">Ready</span></div>
+
+<script>
+// ─── STORAGE ───────────────────────────────────────────
+const LS = {
+  get(k){ try{ const v=localStorage.getItem('kg2_'+k); return v?JSON.parse(v):null; }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem('kg2_'+k,JSON.stringify(v)); return true; }catch(e){ return false; } }
+};
+
+// ─── DATABASE ──────────────────────────────────────────
+const DB = {
+  clients:[], workOrders:[], costs:[], payments:[],
+  vendors:[], contractors:[], salesmen:[], partnerTxns:[], history:[],
+  settings:{ companyName:'Kargar Body Works', address:'Plot No. 24, Village Bajghera, Near Shiv Flor Mil, Gurugram, Haryana - 122017', phone:'+91 9819 41768', email:'kargar.team@gmail.com', gstin:'06DFTPA2607L1ZB', website:'www.kargar.in', gstRate:18, partnerA:'Arman', partnerB:'Vishal' },
+  cms:{ services:['Container Body','Open Body','Refrigerated Body','Tanker Body','Flat Bed','Tipper Body'], expenseCategories:['Raw Material','Welding Gas','Painting','Labour','Transport','Electrical','Hardware','Misc','Chai/Paani','Petrol'] },
+
+  load(){
+    const keys=['clients','workOrders','costs','payments','vendors','contractors','salesmen','partnerTxns','history','settings','cms'];
+    keys.forEach(k=>{ const d=LS.get(k); if(d){ if(k==='settings'||k==='cms') Object.assign(this[k],d); else this[k]=d; } });
+  },
+
+  _t:null,
+  save(k){
+    clearTimeout(this._t);
+    setDot('saving');
+    this._t=setTimeout(()=>{
+      const keys=k?[k]:['clients','workOrders','costs','payments','vendors','contractors','salesmen','partnerTxns','history','settings','cms'];
+      keys.forEach(key=>LS.set(key,this[key]));
+      setDot('ok');
+    },500);
+  },
+
+  uid(p){ return p+Date.now()+Math.random().toString(36).slice(2,6).toUpperCase(); },
+  getClient(id){ return this.clients.find(c=>c.id===id)||null; },
+  getWO(id){ return this.workOrders.find(w=>w.id===id)||null; },
+  getVendor(id){ return this.vendors.find(v=>v.id===id)||null; },
+  getContractor(id){ return this.contractors.find(c=>c.id===id)||null; },
+  getSalesman(id){ return this.salesmen.find(s=>s.id===id)||null; },
+
+  woRev(id){ const wo=this.getWO(id); if(!wo)return 0; return parseFloat(wo.orderValue)||0; },
+  woCost(id){ return this.costs.filter(c=>c.woId===id).reduce((s,c)=>s+(parseFloat(c.amount)||0),0); },
+  woRec(id){ return this.payments.filter(p=>p.woId===id&&p.dir==='in').reduce((s,p)=>s+(parseFloat(p.amount)||0),0); },
+
+  log(mod,act,detail){ if(!Array.isArray(this.history))this.history=[]; this.history.unshift({id:this.uid('HX'),mod,act,detail,ts:new Date().toISOString()}); if(this.history.length>300)this.history=this.history.slice(0,300); this.save('history'); },
+
+  stats(){
+    const rev=this.workOrders.reduce((s,w)=>s+this.woRev(w.id),0);
+    const cost=this.costs.reduce((s,c)=>s+(parseFloat(c.amount)||0),0);
+    const rec=this.payments.filter(p=>p.dir==='in').reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
+    const active=this.workOrders.filter(w=>w.status==='Active').length;
+    const delivered=this.workOrders.filter(w=>w.status==='Delivered').length;
+    const pending=this.workOrders.reduce((s,w)=>s+Math.max(0,this.woRev(w.id)-this.woRec(w.id)),0);
+    return {rev,cost,profit:rev-cost,rec,active,delivered,pending};
+  }
+};
+
+// ─── HELPERS ───────────────────────────────────────────
+const today = ()=>new Date().toISOString().slice(0,10);
+const now   = ()=>new Date().toISOString();
+const fmt   = d=>{ if(!d)return '—'; try{ return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); }catch(e){ return d; } };
+const fmtM  = n=>{ const v=parseFloat(n)||0; if(v>=100000)return '₹'+(v/100000).toFixed(2)+'L'; if(v>=1000)return '₹'+(v/1000).toFixed(1)+'K'; return '₹'+v.toLocaleString('en-IN'); };
+const fmtF  = n=>'₹'+(parseFloat(n)||0).toLocaleString('en-IN',{minimumFractionDigits:0});
+const esc   = s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const woNo  = ()=>'KRG'+String(DB.workOrders.length+1).padStart(3,'0');
+const STcol = {Active:'bb',Delivered:'bgg','On Hold':'ba',Cancelled:'bg'};
+
+function setDot(s){ const d=document.getElementById('sdot'),t=document.getElementById('stxt'); if(!d)return; d.className='dot'+(s==='saving'?' saving':s==='err'?' err':''); t.textContent=s==='saving'?'Saving...':s==='err'?'Error':'Saved'; }
+function toast(msg,type='ok'){ const t=document.createElement('div'); t.className='toast-msg'; t.style.background=type==='err'?'var(--red)':type==='info'?'var(--blue)':'var(--green)'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2600); }
+function modal(html){ document.getElementById('modal-root').innerHTML='<div class="overlay" id="ov" onclick="if(event.target===this)closeModal()">'+html+'</div>'; }
+function closeModal(){ document.getElementById('modal-root').innerHTML=''; }
+function confirm2(msg,cb){ modal('<div class="modal"><div class="mh"><div class="mt">Confirm</div></div><div class="mb2"><p>'+esc(msg)+'</p></div><div class="mf"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-red" id="cfbtn">Delete Karo</button></div></div>'); document.getElementById('cfbtn').onclick=()=>{ closeModal(); cb(); }; }
+
+// ─── ROUTER ────────────────────────────────────────────
+const PAGES = {};
+function toggleSidebar(){
+  const sb=document.getElementById('sidebar');
+  const ov=document.getElementById('sidebar-overlay');
+  sb.classList.toggle('open');
+  ov.classList.toggle('open');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+
+function toggleSidebar_sbItem(){
+  // Close sidebar on mobile when item is tapped
+  if(window.innerWidth<=640) closeSidebar();
+}
+
+function goPage(page){
+  document.querySelectorAll('.sb-item').forEach(el=>{ el.classList.toggle('active', el.dataset.page===page); });
+  const titles={dashboard:'Dashboard',trucks:'Truck Entry',workorders:'Work Orders',costing:'Costing',dailyexpense:'⚡ Daily Expense',payments:'Payments',clients:'Clients',vendors:'Vendors',contractors:'Thekedar',contractorledger:'📒 Contractor Ledger',partners:'Partner Ledger',reports:'Reports & P&L',settings:'⚙️ Settings'};
+  document.getElementById('page-title').textContent=titles[page]||page;
+  const c=document.getElementById('content');
+  try{ c.innerHTML=PAGES[page]?PAGES[page]():'<div class="empty"><div class="ei">🚧</div><h3>Coming Soon</h3></div>'; }
+  catch(e){ console.error(page,e); c.innerHTML='<div class="empty"><div class="ei">⚠️</div><h3>Page Error</h3><p style="font-size:11px;color:red;font-family:monospace">'+esc(e.message)+'</p></div>'; }
+  c.scrollTop=0;
+  if(page==='dashboard') setTimeout(drawCharts,100);
+}
+
+// ─── PAGES ─────────────────────────────────────────────
+
+PAGES.dashboard=function(){
+  const s=DB.stats();
+  const pA=DB.settings.partnerA||'Arman', pB=DB.settings.partnerB||'Vishal';
+  const recA=DB.payments.filter(p=>p.dir==='in'&&p.recBy===pA).reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
+  const recB=DB.payments.filter(p=>p.dir==='in'&&p.recBy===pB).reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
+  const recent=[...DB.workOrders].sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0)).slice(0,5);
+  return `
+<div class="stats">
+  <div class="stat red"><div class="stat-l">Revenue</div><div class="stat-v">${fmtM(s.rev)}</div></div>
+  <div class="stat amber"><div class="stat-l">Expenses</div><div class="stat-v">${fmtM(s.cost)}</div></div>
+  <div class="stat green"><div class="stat-l">Net Profit</div><div class="stat-v">${fmtM(s.profit)}</div></div>
+  <div class="stat blue"><div class="stat-l">Active</div><div class="stat-v">${s.active}</div></div>
+  <div class="stat purple"><div class="stat-l">Pending</div><div class="stat-v">${fmtM(s.pending)}</div></div>
+  <div class="stat teal"><div class="stat-l">Delivered</div><div class="stat-v">${s.delivered}</div></div>
+  <div class="stat green"><div class="stat-l">Each 50% Share</div><div class="stat-v">${fmtM(s.profit*0.5)}</div></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 340px;gap:14px;margin-bottom:14px">
+  <div class="card card-p">
+    <div class="sec-ttl" style="margin-bottom:12px">Monthly Overview (Last 6 Months)</div>
+    <canvas id="chart-bar" height="170"></canvas>
+    <div style="display:flex;gap:14px;margin-top:8px;justify-content:center;font-size:11px">
+      <span><span style="display:inline-block;width:10px;height:10px;background:var(--blue);border-radius:2px;margin-right:4px"></span>Revenue</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:var(--red);border-radius:2px;margin-right:4px"></span>Expense</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:var(--green);border-radius:2px;margin-right:4px"></span>Received</span>
+    </div>
+  </div>
+  <div class="card card-p">
+    <div class="sec-hdr"><div class="sec-ttl">Partners</div><button class="btn btn-ghost btn-sm" onclick="goPage('partners')">Details</button></div>
+    <div class="pb A" style="margin-bottom:10px">
+      <div class="pn A">🅰 ${esc(pA)} — 50%</div>
+      <div class="ig">
+        <div><div class="il">Collected</div><div class="iv" style="color:var(--green)">${fmtM(recA)}</div></div>
+        <div><div class="il">50% Share</div><div class="iv" style="color:var(--green);font-size:15px">${fmtM(s.profit*0.5)}</div></div>
+      </div>
+    </div>
+    <div class="pb B">
+      <div class="pn B">🅱 ${esc(pB)} — 50%</div>
+      <div class="ig">
+        <div><div class="il">Collected</div><div class="iv" style="color:var(--green)">${fmtM(recB)}</div></div>
+        <div><div class="il">50% Share</div><div class="iv" style="color:var(--green);font-size:15px">${fmtM(s.profit*0.5)}</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px">
+  <div class="card card-p">
+    <div class="sec-ttl" style="margin-bottom:10px">Expense Breakdown</div>
+    <canvas id="chart-donut" width="100" height="100" style="display:block;margin:0 auto 10px"></canvas>
+  </div>
+  <div class="card card-p">
+    <div class="sec-ttl" style="margin-bottom:10px">Truck Status</div>
+    <canvas id="chart-status" width="100" height="100" style="display:block;margin:0 auto 10px"></canvas>
+    <div style="font-size:12px;text-align:center;color:var(--t2)">Total: ${DB.workOrders.length} trucks</div>
+  </div>
+  <div class="card card-p">
+    <div class="sec-ttl" style="margin-bottom:10px">Top Trucks by Profit</div>
+    <canvas id="chart-top" height="120"></canvas>
+  </div>
+</div>
+<div class="card card-p">
+  <div class="sec-hdr"><div class="sec-ttl">Recent Orders</div><button class="btn btn-ghost btn-sm" onclick="goPage('trucks')">All</button></div>
+  ${recent.length?'<div class="tw"><table><tr><th>ID</th><th>Chassis</th><th>Client</th><th>Revenue</th><th>Received</th><th>Status</th></tr>'+recent.map(w=>{const c=DB.getClient(w.clientId);const rv=DB.woRev(w.id);const rc=DB.woRec(w.id);return'<tr onclick="showWO(\''+w.id+'\')" style="cursor:pointer"><td style="font-family:monospace;font-size:12px">'+esc(w.orderId)+'</td><td style="font-family:monospace;font-size:11px">'+esc(w.chassisNo||'—')+'</td><td>'+esc(c?c.name:'Unknown')+'</td><td style="font-family:monospace">'+fmtM(rv)+'</td><td style="font-family:monospace;color:'+(rc>=rv&&rv>0?'var(--green)':'var(--amber)')+'">'+fmtM(rc)+'</td><td><span class="badge '+(STcol[w.status]||'bg')+'">'+esc(w.status)+'</span></td></tr>';}).join('')+'</table></div>':'<div class="empty"><div class="ei">🔧</div><h3>No orders yet</h3></div>'}
+</div>`;
+};
+
+PAGES.trucks=function(){
+  const trucks=[...DB.workOrders].sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0));
+  const s=DB.stats();
+  return `
+<div class="sec-hdr">
+  <div><div class="sec-ttl">Truck Entry Register</div><div class="sec-sub">${s.active} active · ${s.delivered} delivered</div></div>
+  <div style="display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="showExport()">📊 Export</button><button class="btn btn-red" onclick="showAddTruck()">+ New Truck Entry</button></div>
+</div>
+<div class="stats" style="grid-template-columns:repeat(4,1fr)">
+  <div class="stat blue"><div class="stat-l">Active</div><div class="stat-v">${s.active}</div></div>
+  <div class="stat green"><div class="stat-l">Delivered</div><div class="stat-v">${s.delivered}</div></div>
+  <div class="stat amber"><div class="stat-l">On Hold</div><div class="stat-v">${DB.workOrders.filter(w=>w.status==='On Hold').length}</div></div>
+  <div class="stat teal"><div class="stat-l">Total</div><div class="stat-v">${DB.workOrders.length}</div></div>
+</div>
+<div class="fr">
+  <input placeholder="Search chassis, truck no, client..." oninput="filterTrucks(this.value)" id="tsearch">
+  <select onchange="filterTrucks(document.getElementById('tsearch').value,this.value)" style="flex:0 0 140px">
+    <option value="">All Status</option><option>Active</option><option>Delivered</option><option>On Hold</option><option>Cancelled</option>
+  </select>
+</div>
+${trucks.length?trucks.map(w=>{
+  const c=DB.getClient(w.clientId);
+  const rv=DB.woRev(w.id),rc=DB.woRec(w.id),pend=Math.max(0,rv-rc);
+  return`<div class="tcard" id="tc_${w.id}" onclick="showWO('${w.id}')">
+    <div style="font-size:26px">${w.status==='Delivered'?'✅':'🚛'}</div>
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+        <span style="font-family:monospace;font-size:12px;font-weight:700;color:var(--blue)">${esc(w.orderId)}</span>
+        <span class="badge ${STcol[w.status]||'bg'}">${esc(w.status)}</span>
+        ${w.isRef?'<span class="badge ba">📞 Reference</span>':''}
+        ${w.noGst?'<span class="badge bg">No GST</span>':''}
+      </div>
+      <div style="font-size:12px;color:var(--t3);margin-top:3px">Chassis: <b>${esc(w.chassisNo||'—')}</b> | Truck: ${esc(w.truckNo||'—')} | ${esc(c?c.name:'No Client')} | ${esc(w.vehicleType||'—')}</div>
+      <div style="font-size:12px;color:var(--t2);margin-top:2px">Entry: ${fmt(w.entryDate)} | Delivery: ${fmt(w.deliveryDate)} | Rev: <b>${fmtM(rv)}</b> | Pending: <span style="color:${pend>0?'var(--amber)':'var(--green)'}"><b>${fmtM(pend)}</b></span></div>
+      <div class="prog"><div class="prog-bar" style="width:${rv>0?Math.min(100,rc/rv*100):0}%;background:${w.status==='Delivered'?'var(--green)':'var(--blue)'}"></div></div>
+    </div>
+    <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="event.stopPropagation();delTruck('${w.id}')">🗑</button>
+  </div>`;
+}).join(''):'<div class="empty"><div class="ei">🚛</div><h3>No trucks yet</h3><p>New Truck Entry button se start karo</p></div>'}`;
+};
+
+PAGES.workorders=function(){
+  const wos=[...DB.workOrders].reverse();
+  return`<div class="sec-hdr"><div class="sec-ttl">Work Orders</div><button class="btn btn-red" onclick="showAddTruck()">+ New</button></div>
+<div class="card"><div class="tw"><table>
+<tr><th>Order ID</th><th>Chassis</th><th>Client</th><th>Vehicle</th><th>Revenue</th><th>Status</th><th>Action</th></tr>
+${wos.length?wos.map(w=>{const c=DB.getClient(w.clientId);return`<tr>
+<td style="font-family:monospace;font-size:12px">${esc(w.orderId)}</td>
+<td style="font-family:monospace;font-size:11px">${esc(w.chassisNo||'—')}</td>
+<td>${esc(c?c.name:'—')}</td><td>${esc(w.vehicleType||'—')}</td>
+<td style="font-family:monospace">${fmtM(DB.woRev(w.id))}</td>
+<td><span class="badge ${STcol[w.status]||'bg'}">${esc(w.status)}</span></td>
+<td><button class="btn btn-ghost btn-sm" onclick="showWO('${w.id}')">View</button></td>
+</tr>`;}).join(''):'<tr><td colspan="7"><div class="empty" style="padding:24px"><div class="ei">🔧</div><h3>No orders</h3></div></td></tr>'}
+</table></div></div>`;
+};
+
+PAGES.costing=function(){
+  const costs=[...DB.costs].reverse();
+  const total=DB.costs.reduce((s,c)=>s+(parseFloat(c.amount)||0),0);
+  return`<div class="sec-hdr"><div class="sec-ttl">Costing & Expenses</div>
+<div style="display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="exportCosting()">📊 Export</button><button class="btn btn-red" onclick="showAddCost()">+ Add Expense</button></div></div>
+<div class="stats" style="grid-template-columns:repeat(3,1fr)">
+<div class="stat red"><div class="stat-l">Total Expenses</div><div class="stat-v">${fmtM(total)}</div></div>
+<div class="stat amber"><div class="stat-l">Raw Material</div><div class="stat-v">${fmtM(DB.costs.filter(c=>c.ctype==='raw_material').reduce((s,c)=>s+(parseFloat(c.amount)||0),0))}</div></div>
+<div class="stat blue"><div class="stat-l">Labour</div><div class="stat-v">${fmtM(DB.costs.filter(c=>c.ctype==='labour').reduce((s,c)=>s+(parseFloat(c.amount)||0),0))}</div></div>
+</div>
+<div class="card"><div class="tw"><table>
+<tr><th>Date</th><th>Type</th><th>Category</th><th>Work Order</th><th>Vendor</th><th>Paid By</th><th>Amount</th><th></th></tr>
+${costs.length?costs.map(c=>{const wo=c.woId?DB.getWO(c.woId):null;const pA=DB.settings.partnerA||'Arman';return`<tr id="cr_${c.id}">
+<td style="font-family:monospace;font-size:11px">${fmt(c.date)}</td>
+<td><span class="badge ba">${esc(c.ctype||'other')}</span></td>
+<td>${esc(c.category||'—')}</td>
+<td style="font-family:monospace;font-size:11px">${wo?esc(wo.orderId):'—'}</td>
+<td>${esc(c.vendor||'—')}</td>
+<td><span class="badge ${c.paidBy===pA?'bb':'bp'}">${esc(c.paidBy||'—')}</span></td>
+<td style="font-family:monospace;font-weight:700">${fmtF(c.amount)}</td>
+<td><button class="btn btn-ghost btn-sm" onclick="delCost('${c.id}')">🗑</button></td>
+</tr>`;}).join(''):'<tr><td colspan="8"><div class="empty" style="padding:24px"><div class="ei">💰</div><h3>No expenses</h3></div></td></tr>'}
+</table></div></div>`;
+};
+
+PAGES.dailyexpense=function(){
+  const tod=DB.costs.filter(c=>c.date===today()).reverse();
+  const tot=tod.reduce((s,c)=>s+(parseFloat(c.amount)||0),0);
+  const pA=DB.settings.partnerA||'Arman', pB=DB.settings.partnerB||'Vishal';
+  return`<div class="sec-hdr"><div class="sec-ttl">⚡ Daily Expense — Fast Mode</div><div class="sec-sub">Aaj: ${fmtF(tot)}</div></div>
+<div style="display:grid;grid-template-columns:320px 1fr;gap:14px">
+<div class="card card-p">
+  <div class="sec-ttl" style="margin-bottom:12px">Quick Add</div>
+  <div class="fg"><label>Amount ₹ *</label><input id="de-amt" type="number" placeholder="500" style="font-size:20px;padding:10px;font-weight:700"></div>
+  <div class="fg"><label>Category</label><select id="de-cat">${DB.cms.expenseCategories.map(x=>`<option>${esc(x)}</option>`).join('')}</select></div>
+  <div class="fg"><label>Paid By</label>
+    <div style="display:flex;gap:8px">
+      <button id="de-btnA" class="btn btn-red" style="flex:1" onclick="deSel('${pA}')">${pA}</button>
+      <button id="de-btnB" class="btn btn-ghost" style="flex:1" onclick="deSel('${pB}')">${pB}</button>
+    </div>
+    <input type="hidden" id="de-by" value="${pA}">
+  </div>
+  <div class="fg"><label>Work Order (optional)</label><select id="de-wo"><option value="">— General —</option>${DB.workOrders.filter(w=>w.status==='Active').map(w=>`<option value="${w.id}">${esc(w.orderId)}</option>`).join('')}</select></div>
+  <div class="fg"><label>Note</label><input id="de-note" placeholder="Optional"></div>
+  <button class="btn btn-red" style="width:100%;padding:11px;font-size:15px" onclick="saveDailyExp()">⚡ Add</button>
+</div>
+<div class="card card-p">
+  <div class="sec-hdr"><div class="sec-ttl">Aaj ke Expenses</div><span style="font-family:monospace;font-weight:700;color:var(--red)">${fmtF(tot)}</span></div>
+  ${tod.length?tod.map(c=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #F5F6FA">
+    <div style="flex:1"><div style="font-weight:600">${esc(c.category)}</div><div style="font-size:11px;color:var(--t3)">${fmt(c.date)} · ${esc(c.paidBy||'—')}</div></div>
+    <div style="font-family:monospace;font-weight:700;color:var(--red)">${fmtF(c.amount)}</div>
+    <button class="btn btn-ghost btn-sm" onclick="delCost('${c.id}')">🗑</button>
+  </div>`).join(''):'<div class="empty" style="padding:30px"><div class="ei">✅</div><h3>Aaj koi expense nahi</h3></div>'}
+</div></div>`;
+};
+
+PAGES.payments=function(){
+  const pays=[...DB.payments].reverse();
+  const tin=DB.payments.filter(p=>p.dir==='in').reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
+  const tout=DB.payments.filter(p=>p.dir==='out').reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
+  return`<div class="sec-hdr"><div class="sec-ttl">Payments</div>
+<div style="display:flex;gap:8px">
+  <button class="btn btn-ghost btn-sm" onclick="exportPayments()">📊 Export</button>
+  <button class="btn btn-green" onclick="showAddPay('in')">+ Receive</button>
+  <button class="btn btn-ghost" onclick="showAddPay('out')">+ Pay Out</button>
+</div></div>
+<div class="stats" style="grid-template-columns:repeat(3,1fr)">
+<div class="stat green"><div class="stat-l">Total In</div><div class="stat-v">${fmtM(tin)}</div></div>
+<div class="stat red"><div class="stat-l">Total Out</div><div class="stat-v">${fmtM(tout)}</div></div>
+<div class="stat blue"><div class="stat-l">Net Flow</div><div class="stat-v">${fmtM(tin-tout)}</div></div>
+</div>
+<div class="card"><div class="tw"><table>
+<tr><th>Date</th><th>Dir</th><th>Client/Vendor</th><th>Work Order</th><th>Mode</th><th>By</th><th>Amount</th><th></th></tr>
+${pays.length?pays.map(p=>{const wo=p.woId?DB.getWO(p.woId):null;const c=p.clientId?DB.getClient(p.clientId):null;const pA=DB.settings.partnerA||'Arman';return`<tr>
+<td style="font-family:monospace;font-size:11px">${fmt(p.date)}</td>
+<td><span class="badge ${p.dir==='in'?'bgg':'bgr'}">${p.dir==='in'?'↓ IN':'↑ OUT'}</span></td>
+<td>${esc(p.dir==='in'?c?c.name:p.clientName||'—':p.vendor||'—')}</td>
+<td style="font-family:monospace;font-size:11px">${wo?esc(wo.orderId):'—'}</td>
+<td>${esc(p.mode||'—')}</td>
+<td><span class="badge ${(p.recBy||p.paidBy)===pA?'bb':'bp'}">${esc(p.recBy||p.paidBy||'—')}</span></td>
+<td style="font-family:monospace;font-weight:700;color:${p.dir==='in'?'var(--green)':'var(--red)'}">${fmtF(p.amount)}</td>
+<td><button class="btn btn-ghost btn-sm" onclick="delPay('${p.id}')">🗑</button></td>
+</tr>`;}).join(''):'<tr><td colspan="8"><div class="empty" style="padding:24px"><div class="ei">💳</div><h3>No payments</h3></div></td></tr>'}
+</table></div></div>`;
+};
+
+PAGES.clients=function(){
+  return`<div class="sec-hdr"><div class="sec-ttl">Clients (${DB.clients.length})</div><button class="btn btn-red" onclick="showAddClient()">+ Add Client</button></div>
+<div class="fr"><input placeholder="Search..." oninput="filterClients(this.value)"></div>
+<div class="card"><div class="tw"><table>
+<tr><th>#</th><th>Name</th><th>Mobile</th><th>Company</th><th>City</th><th>WOs</th><th></th></tr>
+${DB.clients.length?[...DB.clients].reverse().map((c,i)=>`<tr id="clr_${c.id}">
+<td style="color:var(--t3)">${DB.clients.length-i}</td>
+<td style="font-weight:600">${esc(c.name)}</td>
+<td style="font-family:monospace;font-size:12px">${esc(c.mobile||'—')}</td>
+<td>${esc(c.company||'—')}</td><td>${esc(c.city||'—')}</td>
+<td><span class="badge bb">${DB.workOrders.filter(w=>w.clientId===c.id).length}</span></td>
+<td><button class="btn btn-ghost btn-sm" onclick="delClient('${c.id}')">🗑</button></td>
+</tr>`).join(''):'<tr><td colspan="7"><div class="empty" style="padding:24px"><div class="ei">👥</div><h3>No clients</h3></div></td></tr>'}
+</table></div></div>`;
+};
+
+PAGES.vendors=function(){
+  return`<div class="sec-hdr"><div class="sec-ttl">Vendors (${DB.vendors.length})</div><button class="btn btn-red" onclick="showAddVendor()">+ Add</button></div>
+<div class="card"><div class="tw"><table>
+<tr><th>Name</th><th>Mobile</th><th>Material</th><th>Total Purchased</th><th></th></tr>
+${DB.vendors.length?DB.vendors.map(v=>{const tot=DB.costs.filter(c=>c.vendorId===v.id).reduce((s,c)=>s+(parseFloat(c.amount)||0),0);return`<tr>
+<td style="font-weight:600">${esc(v.name)}</td><td style="font-family:monospace;font-size:12px">${esc(v.mobile||'—')}</td>
+<td>${esc(v.material||'—')}</td><td style="font-family:monospace;font-weight:700;color:var(--amber)">${fmtF(tot)}</td>
+<td style="display:flex;gap:5px"><button class="btn btn-ghost btn-sm" onclick="editVendor('${v.id}')">Edit</button><button class="btn btn-ghost btn-sm" onclick="delVendor('${v.id}')">🗑</button></td>
+</tr>`;}).join(''):'<tr><td colspan="5"><div class="empty" style="padding:24px"><div class="ei">🏪</div><h3>No vendors</h3></div></td></tr>'}
+</table></div></div>`;
+};
+
+PAGES.contractors=function(){
+  return`<div class="sec-hdr"><div class="sec-ttl">Thekedar (${DB.contractors.length})</div><button class="btn btn-red" onclick="showAddContractor()">+ Add</button></div>
+<div class="card"><div class="tw"><table>
+<tr><th>Name</th><th>Mobile</th><th>Speciality</th><th>Active Orders</th><th>Total Paid</th><th></th></tr>
+${DB.contractors.length?DB.contractors.map(c=>{
+const active=DB.workOrders.filter(w=>w.contractorId===c.id&&w.status==='Active').length;
+const paid=DB.payments.filter(p=>p.contractorId===c.id).reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
+return`<tr><td style="font-weight:600">${esc(c.name)}</td><td style="font-family:monospace;font-size:12px">${esc(c.mobile||'—')}</td>
+<td>${esc(c.spec||'—')}</td><td><span class="badge bb">${active}</span></td>
+<td style="font-family:monospace;font-weight:700;color:var(--amber)">${fmtF(paid)}</td>
+<td style="display:flex;gap:5px"><button class="btn btn-ghost btn-sm" onclick="editContractor('${c.id}')">Edit</button><button class="btn btn-ghost btn-sm" onclick="delContractor('${c.id}')">🗑</button></td>
+</tr>`;}).join(''):'<tr><td colspan="6"><div class="empty" style="padding:24px"><div class="ei">👷</div><h3>No contractors</h3></div></td></tr>'}
+</table></div></div>`;
+};
+
+PAGES.contractorledger=function(){
+  if(!DB.contractors.length)return`<div class="empty"><div class="ei">👷</div><h3>Pehle Thekedar add karo</h3><button class="btn btn-red" style="margin-top:12px" onclick="goPage('contractors')">+ Add</button></div>`;
+  return DB.contractors.map(ctr=>{
+    const wos=DB.workOrders.filter(w=>w.contractorId===ctr.id);
+    const totalDue=wos.reduce((s,w)=>s+(parseFloat(w.ctrAmount||ctr.rate||0)),0);
+    const totalPaid=DB.payments.filter(p=>p.contractorId===ctr.id&&p.dir==='out').reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
+    const bal=Math.max(0,totalDue-totalPaid);
+    const ctrPays=DB.payments.filter(p=>p.contractorId===ctr.id).reverse();
+    return`<div class="card card-p" style="margin-bottom:14px">
+<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+  <div><div style="font-size:16px;font-weight:800">👷 ${esc(ctr.name)}</div><div style="font-size:11px;color:var(--t3)">${esc(ctr.mobile||'')} · ${esc(ctr.spec||'')} · Rate: ${fmtF(ctr.rate||0)}</div></div>
+  <div style="display:flex;gap:8px">
+    <div class="stat amber" style="margin:0;min-width:110px"><div class="stat-l">Due</div><div class="stat-v" style="font-size:16px">${fmtM(totalDue)}</div></div>
+    <div class="stat green" style="margin:0;min-width:110px"><div class="stat-l">Paid</div><div class="stat-v" style="font-size:16px">${fmtM(totalPaid)}</div></div>
+    <div class="stat ${bal>0?'red':'teal'}" style="margin:0;min-width:110px"><div class="stat-l">Balance</div><div class="stat-v" style="font-size:16px">${fmtM(bal)}</div></div>
+    <button class="btn btn-green" onclick="showCtrPay('${ctr.id}')">+ Pay</button>
+  </div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+  <div><div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Trucks (${wos.length})</div>
+    ${wos.map(w=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:#F7F8FC;border-radius:7px;margin-bottom:5px">
+      <span style="font-family:monospace;font-size:12px;font-weight:600">${esc(w.orderId)}</span>
+      <input type="number" value="${w.ctrAmount||''}" placeholder="Amount ₹" style="width:90px;padding:3px 7px;border:1px solid var(--border);border-radius:5px;font-size:12px" onchange="setCtrAmt('${w.id}',this.value)">
+      <span class="badge ${STcol[w.status]||'bg'}">${esc(w.status)}</span>
+    </div>`).join('')||'<p style="color:var(--t3);font-size:12px">Koi truck nahi</p>'}
+  </div>
+  <div><div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Payments (${ctrPays.length})</div>
+    ${ctrPays.map((p,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #F5F6FA">
+      <div style="width:20px;height:20px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:800">${ctrPays.length-i}</div>
+      <div style="flex:1;font-size:12px"><b>${fmtF(p.amount)}</b> · ${fmt(p.date)} · ${esc(p.mode||'Cash')}</div>
+      <button class="btn btn-ghost btn-sm" onclick="delPay('${p.id}')">🗑</button>
+    </div>`).join('')||'<p style="color:var(--t3);font-size:12px">Koi payment nahi</p>'}
+  </div>
+</div></div>`;
+  }).join('');
+};
+
+PAGES.partners=function(){
+  const pA=DB.settings.partnerA||'Arman', pB=DB.settings.partnerB||'Vishal';
+  const s=DB.stats();
+  const balA={rec:DB.payments.filter(p=>p.dir==='in'&&p.recBy===pA).reduce((s,p)=>s+(parseFloat(p.amount)||0),0),paid:DB.payments.filter(p=>p.dir==='out'&&p.paidBy===pA).reduce((s,p)=>s+(parseFloat(p.amount)||0),0)};
+  const balB={rec:DB.payments.filter(p=>p.dir==='in'&&p.recBy===pB).reduce((s,p)=>s+(parseFloat(p.amount)||0),0),paid:DB.payments.filter(p=>p.dir==='out'&&p.paidBy===pB).reduce((s,p)=>s+(parseFloat(p.amount)||0),0)};
+  const txns=[...DB.partnerTxns].reverse();
+  return`<div class="sec-hdr"><div class="sec-ttl">Partner Ledger</div><button class="btn btn-red" onclick="showPTxn()">+ Transaction</button></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+  <div class="pb A card-p" style="padding:16px">
+    <div class="pn A" style="font-size:16px;margin-bottom:12px">🅰 ${esc(pA)} — 50%</div>
+    <div class="stats" style="grid-template-columns:1fr 1fr;margin-bottom:8px">
+      <div class="stat green" style="margin:0"><div class="stat-l">Collected</div><div class="stat-v" style="font-size:18px">${fmtM(balA.rec)}</div></div>
+      <div class="stat red" style="margin:0"><div class="stat-l">Paid Out</div><div class="stat-v" style="font-size:18px">${fmtM(balA.paid)}</div></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-weight:800;font-size:15px;padding:10px;background:rgba(0,196,140,.08);border-radius:8px"><span>🎯 50% Profit Share</span><span style="color:var(--green)">${fmtF(s.profit*0.5)}</span></div>
+  </div>
+  <div class="pb B card-p" style="padding:16px">
+    <div class="pn B" style="font-size:16px;margin-bottom:12px">🅱 ${esc(pB)} — 50%</div>
+    <div class="stats" style="grid-template-columns:1fr 1fr;margin-bottom:8px">
+      <div class="stat green" style="margin:0"><div class="stat-l">Collected</div><div class="stat-v" style="font-size:18px">${fmtM(balB.rec)}</div></div>
+      <div class="stat red" style="margin:0"><div class="stat-l">Paid Out</div><div class="stat-v" style="font-size:18px">${fmtM(balB.paid)}</div></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-weight:800;font-size:15px;padding:10px;background:rgba(0,196,140,.08);border-radius:8px"><span>🎯 50% Profit Share</span><span style="color:var(--green)">${fmtF(s.profit*0.5)}</span></div>
+  </div>
+</div>
+<div class="card card-p">
+  <div class="sec-ttl" style="margin-bottom:12px">Partner Transactions</div>
+  ${txns.length?`<div class="tw"><table><tr><th>Date</th><th>From</th><th>To</th><th>Amount</th><th>Reason</th><th></th></tr>
+  ${txns.map(t=>`<tr><td style="font-family:monospace;font-size:11px">${fmt(t.date)}</td><td><span class="badge bb">${esc(t.from)}</span></td><td><span class="badge bp">${esc(t.to)}</span></td><td style="font-family:monospace;font-weight:700">${fmtF(t.amount)}</td><td>${esc(t.reason||'—')}</td><td><button class="btn btn-ghost btn-sm" onclick="delPTxn('${t.id}')">🗑</button></td></tr>`).join('')}
+  </table></div>`:'<div class="empty" style="padding:24px"><div class="ei">🤜</div><h3>No transactions</h3></div>'}
+</div>`;
+};
+
+PAGES.reports=function(){
+  const s=DB.stats();
+  const rec=DB.payments.filter(p=>p.dir==='in').reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
+  const byWO=DB.workOrders.map(w=>({w,rev:DB.woRev(w.id),cost:DB.woCost(w.id),profit:DB.woRev(w.id)-DB.woCost(w.id)})).sort((a,b)=>b.profit-a.profit);
+  return`<div class="stats">
+<div class="stat green"><div class="stat-l">Revenue</div><div class="stat-v">${fmtM(s.rev)}</div></div>
+<div class="stat red"><div class="stat-l">Expenses</div><div class="stat-v">${fmtM(s.cost)}</div></div>
+<div class="stat green"><div class="stat-l">Net Profit</div><div class="stat-v">${fmtM(s.profit)}</div></div>
+<div class="stat blue"><div class="stat-l">Received</div><div class="stat-v">${fmtM(rec)}</div></div>
+<div class="stat amber"><div class="stat-l">Pending</div><div class="stat-v">${fmtM(s.pending)}</div></div>
+</div>
+<div class="card card-p">
+  <div class="sec-ttl" style="margin-bottom:12px">Truck-wise Profit</div>
+  <div class="tw"><table><tr><th>Order ID</th><th>Chassis</th><th>Client</th><th>Revenue</th><th>Cost</th><th>Profit</th><th>Margin</th><th>Status</th></tr>
+  ${byWO.length?byWO.map(({w,rev,cost,profit})=>{const c=DB.getClient(w.clientId);const pct=rev>0?(profit/rev*100).toFixed(1):0;return`<tr>
+  <td style="font-family:monospace;font-size:12px">${esc(w.orderId)}</td><td style="font-family:monospace;font-size:11px">${esc(w.chassisNo||'—')}</td>
+  <td>${esc(c?c.name:'—')}</td><td style="font-family:monospace">${fmtF(rev)}</td><td style="font-family:monospace">${fmtF(cost)}</td>
+  <td style="font-family:monospace;font-weight:700;color:${profit>=0?'var(--green)':'var(--red)'}">${fmtF(profit)}</td>
+  <td><span class="badge ${parseFloat(pct)<10?'bgr':parseFloat(pct)<20?'ba':'bgg'}">${pct}%</span></td>
+  <td><span class="badge ${STcol[w.status]||'bg'}">${esc(w.status)}</span></td>
+  </tr>`;}).join(''):'<tr><td colspan="8"><div class="empty" style="padding:24px">No data</div></td></tr>'}
+  </table></div>
+</div>`;
+};
+
+PAGES.settings=function(){
+  const s=DB.settings;
+  return`<div class="card card-p" style="max-width:600px">
+<div class="sec-ttl" style="margin-bottom:16px">Company Settings</div>
+<div class="g2">
+  <div class="fg"><label>Company Name</label><input id="cs-name" value="${esc(s.companyName)}"></div>
+  <div class="fg"><label>Phone</label><input id="cs-phone" value="${esc(s.phone)}"></div>
+  <div class="fg"><label>Email</label><input id="cs-email" value="${esc(s.email)}"></div>
+  <div class="fg"><label>Website</label><input id="cs-web" value="${esc(s.website)}"></div>
+  <div class="fg"><label>GSTIN</label><input id="cs-gstin" value="${esc(s.gstin)}"></div>
+  <div class="fg"><label>GST Rate %</label><input id="cs-gst" type="number" value="${s.gstRate}"></div>
+  <div class="fg"><label>Partner A Name</label><input id="cs-pA" value="${esc(s.partnerA)}"></div>
+  <div class="fg"><label>Partner B Name</label><input id="cs-pB" value="${esc(s.partnerB)}"></div>
+</div>
+<div class="fg"><label>Address</label><textarea id="cs-addr">${esc(s.address)}</textarea></div>
+<button class="btn btn-red" onclick="saveSettings()">💾 Save Settings</button>
+</div>`;
+};
+
+// ─── CHARTS ────────────────────────────────────────────
+function drawCharts(){
+  try{
+    // Bar chart
+    const mc=document.getElementById('chart-bar'); if(!mc)return;
+    const ctx=mc.getContext('2d');
+    mc.width=mc.parentElement.clientWidth-36||500; mc.height=170;
+    const W=mc.width,H=170,pl=50,pb=28,pt=16,pr=16;
+    const cw=W-pl-pr,ch=H-pb-pt;
+    const months=[];
+    for(let i=5;i>=0;i--){const d=new Date();d.setMonth(d.getMonth()-i);months.push({k:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),l:d.toLocaleString('default',{month:'short'}),rev:0,cost:0,rec:0});}
+    DB.workOrders.forEach(w=>{const m=months.find(x=>x.k===(w.entryDate||'').slice(0,7));if(m){m.rev+=DB.woRev(w.id);m.cost+=DB.woCost(w.id);}});
+    DB.payments.filter(p=>p.dir==='in').forEach(p=>{const m=months.find(x=>x.k===(p.date||'').slice(0,7));if(m)m.rec+=(parseFloat(p.amount)||0);});
+    const mx=Math.max(...months.map(m=>Math.max(m.rev,m.cost,m.rec)),1);
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle='#E4E7F0';ctx.lineWidth=1;
+    for(let i=0;i<=4;i++){const y=pt+ch*(1-i/4);ctx.beginPath();ctx.moveTo(pl,y);ctx.lineTo(pl+cw,y);ctx.stroke();ctx.fillStyle='#9098B1';ctx.font='10px sans-serif';ctx.textAlign='right';ctx.fillText('₹'+fmtK(mx*i/4),pl-4,y+3);}
+    const bw=Math.floor(cw/months.length),barW=Math.floor(bw*0.22);
+    months.forEach((m,i)=>{
+      const x=pl+i*bw+bw*0.1;
+      [[m.rev,'#4070FF'],[m.cost,'#E8193C'],[m.rec,'#00C48C']].forEach(([v,col],j)=>{
+        const bh=Math.max(2,ch*(v/mx));
+        ctx.fillStyle=col;ctx.fillRect(x+j*(barW+2),pt+ch-bh,barW,bh);
+      });
+      ctx.fillStyle='#4A5068';ctx.font='11px sans-serif';ctx.textAlign='center';ctx.fillText(m.l,pl+i*bw+bw/2,H-8);
+    });
+    ctx.strokeStyle='#CDD2E5';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(pl,pt);ctx.lineTo(pl,pt+ch);ctx.stroke();
+  }catch(e){console.warn('bar chart',e);}
+
+  try{
+    // Expense donut
+    const dc=document.getElementById('chart-donut'); if(!dc)return;
+    const ctx2=dc.getContext('2d');
+    const cats={};DB.costs.forEach(c=>{cats[c.ctype||'other']=(cats[c.ctype||'other']||0)+(parseFloat(c.amount)||0);});
+    const data=[cats.raw_material||0,cats.labour||0,cats.paint||0,cats.hardware||0,cats.other||0];
+    const cols=['#F5A623','#4070FF','#00C48C','#8B5CF6','#9098B1'];
+    const tot=data.reduce((a,b)=>a+b,0)||1;
+    let ang=-Math.PI/2;
+    ctx2.clearRect(0,0,100,100);
+    data.forEach((v,i)=>{const a=v/tot*Math.PI*2;ctx2.beginPath();ctx2.moveTo(50,50);ctx2.arc(50,50,46,ang,ang+a);ctx2.closePath();ctx2.fillStyle=cols[i];ctx2.fill();ang+=a;});
+    ctx2.beginPath();ctx2.arc(50,50,30,0,Math.PI*2);ctx2.fillStyle='#fff';ctx2.fill();
+    ctx2.fillStyle='#0D0D16';ctx2.font='bold 10px sans-serif';ctx2.textAlign='center';ctx2.fillText(fmtK(tot),50,54);
+  }catch(e){console.warn('donut',e);}
+
+  try{
+    // Status donut
+    const sc=document.getElementById('chart-status'); if(!sc)return;
+    const ctx3=sc.getContext('2d');
+    const scnt={Active:0,Delivered:0,'On Hold':0,Cancelled:0};
+    DB.workOrders.forEach(w=>{if(scnt[w.status]!==undefined)scnt[w.status]++;});
+    const sdata=[scnt.Active,scnt.Delivered,scnt['On Hold'],scnt.Cancelled];
+    const scols=['#4070FF','#00C48C','#F5A623','#9098B1'];
+    const stot=sdata.reduce((a,b)=>a+b,0)||1;
+    let sang=-Math.PI/2;
+    ctx3.clearRect(0,0,100,100);
+    sdata.forEach((v,i)=>{const a=v/stot*Math.PI*2;ctx3.beginPath();ctx3.moveTo(50,50);ctx3.arc(50,50,46,sang,sang+a);ctx3.closePath();ctx3.fillStyle=scols[i];ctx3.fill();sang+=a;});
+    ctx3.beginPath();ctx3.arc(50,50,30,0,Math.PI*2);ctx3.fillStyle='#fff';ctx3.fill();
+    ctx3.fillStyle='#0D0D16';ctx3.font='bold 12px sans-serif';ctx3.textAlign='center';ctx3.fillText(stot,50,54);
+  }catch(e){console.warn('status donut',e);}
+
+  try{
+    // Top trucks
+    const tc=document.getElementById('chart-top'); if(!tc)return;
+    const ctx4=tc.getContext('2d');
+    const top=[...DB.workOrders].map(w=>({id:w.orderId,p:DB.woRev(w.id)-DB.woCost(w.id),r:DB.woRev(w.id)})).filter(t=>t.r>0).sort((a,b)=>b.p-a.p).slice(0,5);
+    tc.width=tc.parentElement.clientWidth-36||220;
+    tc.height=top.length?top.length*28+10:60;
+    ctx4.clearRect(0,0,tc.width,tc.height);
+    if(!top.length){ctx4.fillStyle='#9098B1';ctx4.font='12px sans-serif';ctx4.textAlign='center';ctx4.fillText('No data',tc.width/2,30);return;}
+    const mxp=Math.max(...top.map(t=>t.r),1),lw=56,bw=tc.width-lw-60;
+    top.forEach((t,i)=>{
+      const y=i*28+5;
+      ctx4.fillStyle='#9098B1';ctx4.font='11px sans-serif';ctx4.textAlign='right';ctx4.fillText(t.id,lw-4,y+16);
+      ctx4.fillStyle='#F0F2F8';ctx4.fillRect(lw,y,bw,20);
+      const pw=Math.max(4,bw*(t.r/mxp));ctx4.fillStyle='#4070FF33';ctx4.fillRect(lw,y,pw,20);
+      const ppw=t.p>0?Math.max(4,bw*(t.p/mxp)):0;ctx4.fillStyle=t.p>=0?'#00C48C':'#E8193C';ctx4.fillRect(lw,y,ppw,20);
+      ctx4.fillStyle='#0D0D16';ctx4.font='bold 10px sans-serif';ctx4.textAlign='left';ctx4.fillText('₹'+fmtK(t.p),lw+ppw+3,y+14);
+    });
+  }catch(e){console.warn('top trucks',e);}
+}
+
+function fmtK(v){const n=parseFloat(v)||0;if(n>=100000)return(n/100000).toFixed(1)+'L';if(n>=1000)return(n/1000).toFixed(0)+'K';return String(Math.round(n));}
+
+// ─── ACTIONS ───────────────────────────────────────────
+
+function showAddTruck(){
+  const pA=DB.settings.partnerA||'Arman', pB=DB.settings.partnerB||'Vishal';
+  const cOpts=DB.clients.map(c=>`<option value="${c.id}">${esc(c.name)} — ${esc(c.mobile||'')}</option>`).join('');
+  const ctOpts=DB.contractors.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  modal(`<div class="modal modal-lg"><div class="mh"><div class="mt">🚛 New Truck Entry</div><button class="xbtn" onclick="closeModal()">×</button></div><div class="mb2">
+<div class="g2">
+  <div class="fg"><label>Chassis No *</label><input id="t-ch"></div>
+  <div class="fg"><label>Truck No</label><input id="t-tn"></div>
+  <div class="fg"><label>Entry Date</label><input id="t-ed" type="date" value="${today()}"></div>
+  <div class="fg"><label>Delivery Date</label><input id="t-dd" type="date"></div>
+  <div class="fg"><label>Vehicle Type</label><input id="t-vt" placeholder="Tata 407, 17ft..."></div>
+  <div class="fg"><label>Order Value ₹</label><input id="t-ov" type="number"></div>
+</div>
+<div class="fg"><label>Client (Optional)</label>
+  <select id="t-cl"><option value="">— Skip / Baad Mein —</option>${cOpts}</select>
+</div>
+<div style="padding:10px;background:#F7F8FC;border-radius:8px;margin-bottom:10px">
+  <div style="font-size:11px;font-weight:700;margin-bottom:8px;color:var(--t2)">Or New Client</div>
+  <div class="g2" style="margin:0">
+    <div class="fg" style="margin:0"><label>Name</label><input id="t-cn"></div>
+    <div class="fg" style="margin:0"><label>Mobile</label><input id="t-cm"></div>
+  </div>
+</div>
+<div class="g2">
+  <div class="fg"><label>Contractor</label><select id="t-ctr"><option value="">— None —</option>${ctOpts}</select></div>
+</div>
+<div style="display:flex;gap:16px;padding:10px;background:#F7F8FC;border-radius:8px;margin-bottom:10px">
+  <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;font-weight:600"><input type="checkbox" id="t-ref" style="width:15px;height:15px"> 📞 Reference se aayi</label>
+  <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;font-weight:600"><input type="checkbox" id="t-ng" style="width:15px;height:15px"> 🚫 No GST</label>
+</div>
+<div class="fg" id="t-refblock" style="display:none"><label>Reference Person</label><input id="t-rn" placeholder="Name / Mobile"></div>
+</div><div class="mf"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-red" onclick="saveTruck()">Create Entry</button></div></div>`);
+  document.getElementById('t-ref').onchange=function(){document.getElementById('t-refblock').style.display=this.checked?'':'none';};
+}
+
+function saveTruck(){
+  const ch=document.getElementById('t-ch').value.trim();
+  if(!ch){toast('Chassis number required','err');return;}
+  let cId=document.getElementById('t-cl').value;
+  const cn=document.getElementById('t-cn').value.trim();
+  const cm=document.getElementById('t-cm').value.trim();
+  if(!cId&&cn&&cm){
+    let ex=DB.clients.find(c=>c.mobile===cm);
+    if(!ex){ex={id:DB.uid('CLT'),name:cn,mobile:cm,createdAt:now()};DB.clients.push(ex);DB.save('clients');}
+    cId=ex.id;
+  }
+  const ov=parseFloat(document.getElementById('t-ov').value)||0;
+  const wo={id:DB.uid('WO'),orderId:woNo(),clientId:cId||'',chassisNo:ch,truckNo:document.getElementById('t-tn').value.trim(),entryDate:document.getElementById('t-ed').value,deliveryDate:document.getElementById('t-dd').value,vehicleType:document.getElementById('t-vt').value.trim(),orderValue:ov,contractorId:document.getElementById('t-ctr').value,isRef:document.getElementById('t-ref').checked,refName:document.getElementById('t-rn')?.value.trim()||'',noGst:document.getElementById('t-ng').checked,status:'Active',createdAt:now()};
+  DB.workOrders.push(wo);
+  DB.log('Trucks','ADD',wo.orderId+' — '+ch);
+  DB.save('workOrders');
+  toast(wo.orderId+' entry created ✓');
+  closeModal();goPage('trucks');
+}
+
+function showWO(id){
+  const w=DB.getWO(id);if(!w)return;
+  const c=DB.getClient(w.clientId);
+  const ctr=w.contractorId?DB.getContractor(w.contractorId):null;
+  const rv=DB.woRev(w.id),cost=DB.woCost(w.id),rc=DB.woRec(w.id),pend=Math.max(0,rv-rc);
+  const spays=DB.payments.filter(p=>p.woId===id&&p.dir==='in');
+  const scosts=DB.costs.filter(x=>x.woId===id);
+  const photos=w.photos||[];
+  modal(`<div class="modal modal-xl"><div class="mh">
+    <div class="mt">🚛 ${esc(w.orderId)}</div>
+    <div style="display:flex;gap:7px">
+      ${c&&c.mobile?`<button class="btn btn-sm" style="background:#25D366;color:#fff;border:none" onclick="waShare('${id}')">💬 WhatsApp</button>`:''}
+      <button class="xbtn" onclick="closeModal()">×</button>
+    </div>
+  </div><div class="mb2">
+  <div class="ig" style="grid-template-columns:repeat(4,1fr);margin-bottom:12px">
+    <div><div class="il">Chassis</div><div class="iv" style="font-family:monospace">${esc(w.chassisNo||'—')}</div></div>
+    <div><div class="il">Truck No</div><div class="iv" style="font-family:monospace">${esc(w.truckNo||'—')}</div></div>
+    <div><div class="il">Client</div><div class="iv">${esc(c?c.name:'—')}</div></div>
+    <div><div class="il">Vehicle</div><div class="iv">${esc(w.vehicleType||'—')}</div></div>
+    <div><div class="il">Entry</div><div class="iv">${fmt(w.entryDate)}</div></div>
+    <div><div class="il">Delivery</div><div class="iv">${fmt(w.deliveryDate)}</div></div>
+    <div><div class="il">Contractor</div><div class="iv">${esc(ctr?ctr.name:'—')}</div></div>
+    <div><div class="il">Status</div><div class="iv"><span class="badge ${STcol[w.status]||'bg'}">${esc(w.status)}</span></div></div>
+  </div>
+  <div class="stats" style="grid-template-columns:repeat(4,1fr)">
+    <div class="stat blue"><div class="stat-l">Revenue</div><div class="stat-v" style="font-size:16px">${fmtM(rv)}</div></div>
+    <div class="stat red"><div class="stat-l">Cost</div><div class="stat-v" style="font-size:16px">${fmtM(cost)}</div></div>
+    <div class="stat green"><div class="stat-l">Received</div><div class="stat-v" style="font-size:16px">${fmtM(rc)}</div></div>
+    <div class="stat amber"><div class="stat-l">Pending</div><div class="stat-v" style="font-size:16px">${fmtM(pend)}</div></div>
+  </div>
+  ${w.isRef?`<div style="background:#FEF3C7;border-radius:7px;padding:8px 12px;margin:10px 0;font-size:13px">📞 Reference: <b>${esc(w.refName||'Unknown')}</b></div>`:''}
+  ${w.noGst?`<div style="background:#F3F4F6;border-radius:7px;padding:7px 12px;margin:6px 0;font-size:13px;color:var(--t2)">🚫 No GST</div>`:''}
+  <div class="g2" style="margin-top:12px">
+    <div class="fg"><label>Update Status</label><select id="ws-st">${['Active','On Hold','Delivered','Cancelled'].map(s=>`<option ${w.status===s?'selected':''}>${s}</option>`).join('')}</select></div>
+    <div class="fg"><label>Update Delivery Date</label><input type="date" id="ws-dd" value="${w.deliveryDate||''}"></div>
+  </div>
+  <button class="btn btn-red btn-sm" onclick="updateWO('${id}')">💾 Update</button>
+
+  <div style="display:flex;border-bottom:2px solid var(--border);margin:14px 0 12px;gap:0">
+    <button class="btn btn-ghost" id="tab-costs" style="border-radius:0;border:none;border-bottom:2px solid var(--red);margin-bottom:-2px" onclick="woTab('costs','${id}')">💰 Costs (${scosts.length})</button>
+    <button class="btn btn-ghost" id="tab-pays" style="border-radius:0;border:none" onclick="woTab('pays','${id}')">💳 Payments (${spays.length})</button>
+    <button class="btn btn-ghost" id="tab-photos" style="border-radius:0;border:none" onclick="woTab('photos','${id}')">📷 Photos (${photos.length})</button>
+  </div>
+  <div id="wo-costs">
+    ${scosts.length?`<table><tr><th>Date</th><th>Category</th><th>Amount</th><th>Vendor</th><th>Paid By</th></tr>${scosts.map(x=>`<tr><td style="font-family:monospace;font-size:11px">${fmt(x.date)}</td><td>${esc(x.category||'—')}</td><td style="font-family:monospace;font-weight:700">${fmtF(x.amount)}</td><td>${esc(x.vendor||'—')}</td><td>${esc(x.paidBy||'—')}</td></tr>`).join('')}</table>`:'<p style="color:var(--t3);padding:12px 0">No costs</p>'}
+    <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="closeModal();setTimeout(()=>showAddCost('${id}'),100)">+ Add Cost</button>
+  </div>
+  <div id="wo-pays" style="display:none">
+    ${rv>0?`<div style="background:#F7F8FC;border-radius:8px;padding:10px 12px;margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span>Payment Progress</span><span style="font-family:monospace">${fmtF(rc)} / ${fmtF(rv)}</span></div><div class="prog"><div class="prog-bar" style="width:${Math.min(100,rv>0?rc/rv*100:0).toFixed(0)}%;background:${rc>=rv?'var(--green)':'var(--blue)'}"></div></div></div>`:''}
+    ${spays.length?spays.map((p,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#F7F8FC;border-radius:8px;margin-bottom:6px;border-left:3px solid var(--green)">
+      <div style="width:22px;height:22px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;flex-shrink:0">${i+1}</div>
+      <div style="flex:1"><div style="font-weight:700">${fmtF(p.amount)} <span style="font-weight:400;font-size:11px;color:var(--t3)">via ${esc(p.mode||'Cash')}</span></div><div style="font-size:11px;color:var(--t3)">${fmt(p.date)} · ${esc(p.recBy||'—')}</div></div>
+    </div>`).join(''):'<p style="color:var(--t3);padding:12px 0">No payments</p>'}
+    <button class="btn btn-green btn-sm" style="margin-top:10px" onclick="closeModal();setTimeout(()=>showAddPay('in','${id}'),100)">+ Receive Payment</button>
+  </div>
+  <div id="wo-photos" style="display:none">
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+      ${photos.map((ph,i)=>`<div style="position:relative"><img src="${ph.d}" style="width:120px;height:90px;object-fit:cover;border-radius:7px;border:1px solid var(--border);cursor:pointer" onclick="viewPhoto('${id}',${i})"><div style="font-size:10px;color:var(--t3);text-align:center;margin-top:2px">${esc(ph.l||'Photo')}</div><button onclick="delPhoto('${id}',${i})" style="position:absolute;top:3px;right:3px;background:rgba(0,0,0,.5);border:none;color:#fff;border-radius:50%;width:17px;height:17px;font-size:10px;cursor:pointer;line-height:1">×</button></div>`).join('')}
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${['Entry Photo','Delivery Photo','Work Progress','Other'].map(lbl=>`<label style="display:flex;align-items:center;gap:5px;padding:6px 11px;border:1.5px dashed var(--border);border-radius:7px;cursor:pointer;font-size:12px;font-weight:600;color:var(--t2)">📷 ${lbl}<input type="file" accept="image/*" style="display:none" onchange="addPhoto('${id}','${lbl}',this)"></label>`).join('')}
+    </div>
+  </div>
+  </div><div class="mf"><button class="btn btn-ghost" onclick="closeModal()">Close</button></div></div>`);
+}
+
+function woTab(tab,id){
+  ['costs','pays','photos'].forEach(t=>{
+    const el=document.getElementById('wo-'+t);
+    const btn=document.getElementById('tab-'+t);
+    if(el)el.style.display=t===tab?'':'none';
+    if(btn){btn.style.borderBottom=t===tab?'2px solid var(--red)':'none';btn.style.marginBottom=t===tab?'-2px':'0';}
+  });
+}
+
+function updateWO(id){
+  const w=DB.getWO(id);if(!w)return;
+  w.status=document.getElementById('ws-st').value;
+  w.deliveryDate=document.getElementById('ws-dd').value;
+  DB.save('workOrders');toast('Updated ✓');
+}
+
+function delTruck(id){
+  const w=DB.getWO(id);if(!w)return;
+  confirm2('"'+w.orderId+'" delete karo? Related costs & payments bhi hatenge.',()=>{
+    DB.log('Trucks','DELETE',w.orderId);
+    DB.workOrders=DB.workOrders.filter(x=>x.id!==id);
+    DB.costs=DB.costs.filter(c=>c.woId!==id);
+    DB.payments=DB.payments.filter(p=>p.woId!==id);
+    DB.save('workOrders');DB.save('costs');DB.save('payments');
+    toast(w.orderId+' deleted');goPage('trucks');
+  });
+}
+
+function filterTrucks(q,st){
+  const status=st||'';
+  DB.workOrders.forEach(w=>{
+    const c=DB.getClient(w.clientId);
+    const matchQ=!q||(w.orderId+w.chassisNo+(w.truckNo||'')+(c?c.name:'')+(w.vehicleType||'')).toLowerCase().includes(q.toLowerCase());
+    const matchS=!status||w.status===status;
+    const el=document.getElementById('tc_'+w.id);
+    if(el)el.style.display=matchQ&&matchS?'':'none';
+  });
+}
+
+function showAddCost(prefillWo){
+  const pA=DB.settings.partnerA||'Arman', pB=DB.settings.partnerB||'Vishal';
+  const woOpts=DB.workOrders.map(w=>`<option value="${w.id}" ${prefillWo===w.id?'selected':''}>${esc(w.orderId)}</option>`).join('');
+  const vOpts=DB.vendors.map(v=>`<option value="${v.id}">${esc(v.name)}</option>`).join('');
+  modal(`<div class="modal"><div class="mh"><div class="mt">💰 Add Expense</div><button class="xbtn" onclick="closeModal()">×</button></div><div class="mb2">
+<div class="g2">
+  <div class="fg"><label>Amount ₹ *</label><input id="c-amt" type="number"></div>
+  <div class="fg"><label>Date</label><input id="c-dt" type="date" value="${today()}"></div>
+  <div class="fg"><label>Type</label><select id="c-ct"><option value="raw_material">Raw Material</option><option value="paint">Paint</option><option value="labour">Labour</option><option value="hardware">Hardware</option><option value="other">Other</option></select></div>
+  <div class="fg"><label>Category</label><select id="c-cat"><option value="">Select...</option>${DB.cms.expenseCategories.map(x=>`<option>${esc(x)}</option>`).join('')}</select></div>
+  <div class="fg"><label>Vendor</label><select id="c-vid"><option value="">— None —</option>${vOpts}</select></div>
+  <div class="fg"><label>Or Vendor Name</label><input id="c-vn" placeholder="If not in list"></div>
+  <div class="fg"><label>Work Order</label><select id="c-wo"><option value="">General</option>${woOpts}</select></div>
+  <div class="fg"><label>Paid By *</label><select id="c-pb"><option>${pA}</option><option>${pB}</option></select></div>
+</div>
+<div class="fg"><label>Remark</label><input id="c-rem"></div>
+</div><div class="mf"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-red" onclick="saveCost()">Save</button></div></div>`);
+}
+
+function saveCost(){
+  const amt=parseFloat(document.getElementById('c-amt').value)||0;
+  if(!amt){toast('Amount bharo','err');return;}
+  const vid=document.getElementById('c-vid').value;
+  const vn=vid?(DB.getVendor(vid)||{}).name||'':document.getElementById('c-vn').value.trim();
+  const c={id:DB.uid('CT'),date:document.getElementById('c-dt').value,amount:amt,ctype:document.getElementById('c-ct').value,category:document.getElementById('c-cat').value||document.getElementById('c-ct').value,vendorId:vid,vendor:vn,woId:document.getElementById('c-wo').value,paidBy:document.getElementById('c-pb').value,remark:document.getElementById('c-rem').value.trim(),createdAt:now()};
+  DB.costs.push(c);DB.log('Cost','ADD',c.category+' ₹'+c.amount);DB.save('costs');
+  toast('Expense saved ✓');closeModal();goPage('costing');
+}
+
+function delCost(id){
+  const c=DB.costs.find(x=>x.id===id);
+  confirm2('Delete this expense?',()=>{DB.log('Cost','DELETE',(c?c.category:'')+' ₹'+(c?c.amount:''));DB.costs=DB.costs.filter(x=>x.id!==id);DB.save('costs');goPage(document.getElementById('page-title').textContent.includes('Daily')?'dailyexpense':'costing');});
+}
+
+function deSel(p){
+  document.getElementById('de-by').value=p;
+  const pA=DB.settings.partnerA||'Arman';
+  document.getElementById('de-btnA').className='btn '+(p===pA?'btn-red':'btn-ghost');
+  document.getElementById('de-btnB').className='btn '+(p!==pA?'btn-red':'btn-ghost');
+}
+
+function saveDailyExp(){
+  const amt=parseFloat(document.getElementById('de-amt')?.value)||0;
+  if(!amt){toast('Amount bharo','err');return;}
+  const c={id:DB.uid('CT'),date:today(),amount:amt,ctype:'other',category:document.getElementById('de-cat').value,vendor:'',vendorId:'',woId:document.getElementById('de-wo').value,paidBy:document.getElementById('de-by').value,remark:document.getElementById('de-note').value.trim(),createdAt:now()};
+  DB.costs.push(c);DB.log('DailyExp','ADD',c.category+' ₹'+amt);DB.save('costs');
+  toast('₹'+amt+' added ✓');
+  document.getElementById('de-amt').value='';document.getElementById('de-note').value='';
+  document.getElementById('de-amt').focus();
+  goPage('dailyexpense');
+}
+
+function showAddPay(dir,prefillWo){
+  const pA=DB.settings.partnerA||'Arman', pB=DB.settings.partnerB||'Vishal';
+  const cOpts=DB.clients.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  const woOpts=DB.workOrders.map(w=>`<option value="${w.id}" ${prefillWo===w.id?'selected':''}>${esc(w.orderId)}</option>`).join('');
+  modal(`<div class="modal"><div class="mh"><div class="mt">${dir==='in'?'💚 Receive Payment':'🔴 Pay Out'}</div><button class="xbtn" onclick="closeModal()">×</button></div><div class="mb2">
+<div class="g2">
+  <div class="fg"><label>Amount ₹ *</label><input id="p-amt" type="number"></div>
+  <div class="fg"><label>Date</label><input id="p-dt" type="date" value="${today()}"></div>
+  ${dir==='in'?`<div class="fg"><label>Client</label><select id="p-cl"><option value="">—</option>${cOpts}</select></div>`:`<div class="fg"><label>Vendor/To Whom</label><input id="p-vn" placeholder="Name"></div>`}
+  <div class="fg"><label>Work Order</label><select id="p-wo"><option value="">— None —</option>${woOpts}</select></div>
+  <div class="fg"><label>Mode</label><select id="p-mode"><option>Cash</option><option>UPI</option><option>NEFT</option><option>Cheque</option></select></div>
+  <div class="fg"><label>${dir==='in'?'Received By':'Paid By'}</label><select id="p-by"><option>${pA}</option><option>${pB}</option></select></div>
+</div>
+<div class="fg"><label>Note</label><input id="p-note"></div>
+</div><div class="mf"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn ${dir==='in'?'btn-green':'btn-red'}" onclick="savePay('${dir}')">Save</button></div></div>`);
+}
+
+function savePay(dir){
+  const amt=parseFloat(document.getElementById('p-amt').value)||0;
+  if(!amt){toast('Amount bharo','err');return;}
+  const p={id:DB.uid('PY'),date:document.getElementById('p-dt').value,amount:amt,dir,woId:document.getElementById('p-wo').value,mode:document.getElementById('p-mode').value,note:document.getElementById('p-note').value.trim(),createdAt:now()};
+  if(dir==='in'){p.clientId=document.getElementById('p-cl')?.value||'';p.recBy=document.getElementById('p-by').value;}
+  else{p.vendor=document.getElementById('p-vn')?.value||'';p.paidBy=document.getElementById('p-by').value;}
+  DB.payments.push(p);DB.log('Pay','ADD',(dir==='in'?'IN':'OUT')+' ₹'+amt);DB.save('payments');
+  toast('Payment saved ✓');closeModal();goPage('payments');
+}
+
+function delPay(id){
+  const p=DB.payments.find(x=>x.id===id);
+  confirm2('Delete payment?',()=>{DB.log('Pay','DELETE','₹'+(p?p.amount:''));DB.payments=DB.payments.filter(x=>x.id!==id);DB.save('payments');goPage('payments');});
+}
+
+function showAddClient(){
+  modal(`<div class="modal"><div class="mh"><div class="mt">👤 Add Client</div><button class="xbtn" onclick="closeModal()">×</button></div><div class="mb2">
+<div class="g2">
+  <div class="fg"><label>Name *</label><input id="ac-n"></div>
+  <div class="fg"><label>Mobile</label><input id="ac-m"></div>
+  <div class="fg"><label>Company</label><input id="ac-c"></div>
+  <div class="fg"><label>City</label><input id="ac-cy"></div>
+  <div class="fg"><label>GSTIN</label><input id="ac-g"></div>
+  <div class="fg"><label>Email</label><input id="ac-e"></div>
+</div></div><div class="mf"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-red" onclick="saveClient()">Save</button></div></div>`);
+}
+
+function saveClient(){
+  const n=document.getElementById('ac-n').value.trim();
+  if(!n){toast('Name required','err');return;}
+  DB.clients.push({id:DB.uid('CLT'),name:n,mobile:document.getElementById('ac-m').value.trim(),company:document.getElementById('ac-c').value.trim(),city:document.getElementById('ac-cy').value.trim(),gstin:document.getElementById('ac-g').value.trim(),email:document.getElementById('ac-e').value.trim(),createdAt:now()});
+  DB.save('clients');toast('Client saved ✓');closeModal();goPage('clients');
+}
+
+function delClient(id){confirm2('Delete client?',()=>{DB.clients=DB.clients.filter(c=>c.id!==id);DB.save('clients');goPage('clients');});}
+function filterClients(q){DB.clients.forEach(c=>{const el=document.getElementById('clr_'+c.id);if(el)el.style.display=!q||(c.name+(c.mobile||'')+(c.company||'')+(c.city||'')).toLowerCase().includes(q.toLowerCase())?'':'none';});}
+
+function showAddVendor(eid){
+  const v=eid?DB.getVendor(eid):null;
+  modal(`<div class="modal"><div class="mh"><div class="mt">${v?'Edit':'Add'} Vendor</div><button class="xbtn" onclick="closeModal()">×</button></div><div class="mb2">
+<div class="g2">
+  <div class="fg"><label>Name *</label><input id="v-n" value="${esc(v?v.name:'')}"></div>
+  <div class="fg"><label>Mobile</label><input id="v-m" value="${esc(v?v.mobile:'')}"></div>
+  <div class="fg"><label>Material</label><input id="v-mt" value="${esc(v?v.material:'')}"></div>
+  <div class="fg"><label>City</label><input id="v-c" value="${esc(v?v.city:'')}"></div>
+</div></div><div class="mf"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-red" onclick="saveVendor('${eid||''}')">Save</button></div></div>`);
+}
+
+function saveVendor(eid){
+  const n=document.getElementById('v-n').value.trim();if(!n){toast('Name required','err');return;}
+  const d={name:n,mobile:document.getElementById('v-m').value.trim(),material:document.getElementById('v-mt').value.trim(),city:document.getElementById('v-c').value.trim()};
+  if(eid){const v=DB.getVendor(eid);if(v)Object.assign(v,d);}
+  else DB.vendors.push({id:DB.uid('VN'),...d,createdAt:now()});
+  DB.save('vendors');toast('Vendor saved ✓');closeModal();goPage('vendors');
+}
+function editVendor(id){showAddVendor(id);}
+function delVendor(id){confirm2('Delete vendor?',()=>{DB.vendors=DB.vendors.filter(v=>v.id!==id);DB.save('vendors');goPage('vendors');});}
+
+function showAddContractor(eid){
+  const c=eid?DB.getContractor(eid):null;
+  modal(`<div class="modal"><div class="mh"><div class="mt">${c?'Edit':'Add'} Thekedar</div><button class="xbtn" onclick="closeModal()">×</button></div><div class="mb2">
+<div class="g2">
+  <div class="fg"><label>Name *</label><input id="ct-n" value="${esc(c?c.name:'')}"></div>
+  <div class="fg"><label>Mobile</label><input id="ct-m" value="${esc(c?c.mobile:'')}"></div>
+  <div class="fg"><label>Speciality</label><input id="ct-sp" value="${esc(c?c.spec:'')}" placeholder="Welding, Painting..."></div>
+  <div class="fg"><label>Rate per Job ₹</label><input id="ct-r" type="number" value="${c?c.rate:''}" placeholder="0"></div>
+</div></div><div class="mf"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-red" onclick="saveContractor('${eid||''}')">Save</button></div></div>`);
+}
+
+function saveContractor(eid){
+  const n=document.getElementById('ct-n').value.trim();if(!n){toast('Name required','err');return;}
+  const d={name:n,mobile:document.getElementById('ct-m').value.trim(),spec:document.getElementById('ct-sp').value.trim(),rate:parseFloat(document.getElementById('ct-r').value)||0};
+  if(eid){const c=DB.getContractor(eid);if(c)Object.assign(c,d);}
+  else DB.contractors.push({id:DB.uid('CTR'),...d,createdAt:now()});
+  DB.save('contractors');toast('Thekedar saved ✓');closeModal();goPage('contractors');
+}
+function editContractor(id){showAddContractor(id);}
+function delContractor(id){confirm2('Delete contractor?',()=>{DB.contractors=DB.contractors.filter(c=>c.id!==id);DB.save('contractors');goPage('contractors');});}
+
+function setCtrAmt(woId,val){const w=DB.getWO(woId);if(w){w.ctrAmount=parseFloat(val)||0;DB.save('workOrders');}}
+
+function showCtrPay(ctrId){
+  const ctr=DB.getContractor(ctrId);if(!ctr)return;
+  const pA=DB.settings.partnerA||'Arman', pB=DB.settings.partnerB||'Vishal';
+  const woOpts=DB.workOrders.filter(w=>w.contractorId===ctrId).map(w=>`<option value="${w.id}">${esc(w.orderId)}</option>`).join('');
+  modal(`<div class="modal"><div class="mh"><div class="mt">💸 Pay ${esc(ctr.name)}</div><button class="xbtn" onclick="closeModal()">×</button></div><div class="mb2">
+<div class="g2">
+  <div class="fg"><label>Amount ₹ *</label><input id="cp-a" type="number"></div>
+  <div class="fg"><label>Date</label><input id="cp-d" type="date" value="${today()}"></div>
+  <div class="fg"><label>Mode</label><select id="cp-m"><option>Cash</option><option>UPI</option><option>NEFT</option></select></div>
+  <div class="fg"><label>Paid By</label><select id="cp-b"><option>${pA}</option><option>${pB}</option></select></div>
+  <div class="fg"><label>Work Order</label><select id="cp-wo"><option value="">General</option>${woOpts}</select></div>
+  <div class="fg"><label>Note</label><input id="cp-n"></div>
+</div></div><div class="mf"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-green" onclick="saveCtrPay('${ctrId}')">Pay</button></div></div>`);
+}
+
+function saveCtrPay(ctrId){
+  const amt=parseFloat(document.getElementById('cp-a').value)||0;if(!amt){toast('Amount bharo','err');return;}
+  const ctr=DB.getContractor(ctrId);
+  const p={id:DB.uid('PY'),date:document.getElementById('cp-d').value,amount:amt,dir:'out',contractorId:ctrId,vendor:ctr?ctr.name:'',woId:document.getElementById('cp-wo').value,mode:document.getElementById('cp-m').value,paidBy:document.getElementById('cp-b').value,note:document.getElementById('cp-n').value.trim(),createdAt:now()};
+  DB.payments.push(p);DB.log('CtrPay','ADD','₹'+amt+' to '+(ctr?ctr.name:''));DB.save('payments');
+  toast('Paid ✓');closeModal();goPage('contractorledger');
+}
+
+function showPTxn(){
+  const pA=DB.settings.partnerA||'Arman', pB=DB.settings.partnerB||'Vishal';
+  modal(`<div class="modal"><div class="mh"><div class="mt">🤜 Partner Transaction</div><button class="xbtn" onclick="closeModal()">×</button></div><div class="mb2">
+<div class="g2">
+  <div class="fg"><label>From</label><select id="pt-f"><option>${pA}</option><option>${pB}</option></select></div>
+  <div class="fg"><label>To</label><select id="pt-t"><option>${pB}</option><option>${pA}</option></select></div>
+  <div class="fg"><label>Amount ₹ *</label><input id="pt-a" type="number"></div>
+  <div class="fg"><label>Date</label><input id="pt-d" type="date" value="${today()}"></div>
+</div>
+<div class="fg"><label>Reason</label><input id="pt-r"></div>
+</div><div class="mf"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-red" onclick="savePTxn()">Save</button></div></div>`);
+}
+
+function savePTxn(){
+  const amt=parseFloat(document.getElementById('pt-a').value)||0;if(!amt){toast('Amount bharo','err');return;}
+  DB.partnerTxns.push({id:DB.uid('PT'),from:document.getElementById('pt-f').value,to:document.getElementById('pt-t').value,amount:amt,date:document.getElementById('pt-d').value,reason:document.getElementById('pt-r').value.trim(),createdAt:now()});
+  DB.save('partnerTxns');toast('Transaction saved ✓');closeModal();goPage('partners');
+}
+function delPTxn(id){confirm2('Delete transaction?',()=>{DB.partnerTxns=DB.partnerTxns.filter(t=>t.id!==id);DB.save('partnerTxns');goPage('partners');});}
+
+function addPhoto(woId,label,input){
+  const file=input.files[0];if(!file)return;
+  if(file.size>3*1024*1024){toast('Photo 3MB se badi hai','err');return;}
+  const r=new FileReader();r.onload=e=>{const w=DB.getWO(woId);if(!w)return;if(!w.photos)w.photos=[];w.photos.push({d:e.target.result,l:label,date:today()});DB.save('workOrders');toast(label+' saved ✓');closeModal();setTimeout(()=>showWO(woId),100);};r.readAsDataURL(file);
+}
+function viewPhoto(woId,idx){const w=DB.getWO(woId);if(!w||!w.photos)return;const ph=w.photos[idx];if(!ph)return;modal(`<div class="modal modal-lg"><div class="mh"><div class="mt">📷 ${esc(ph.l||'Photo')}</div><button class="xbtn" onclick="closeModal()">×</button></div><div class="mb2" style="text-align:center"><img src="${ph.d}" style="max-width:100%;max-height:70vh;border-radius:8px"></div></div>`);}
+function delPhoto(woId,idx){confirm2('Delete photo?',()=>{const w=DB.getWO(woId);if(w&&w.photos){w.photos.splice(idx,1);DB.save('workOrders');closeModal();setTimeout(()=>showWO(woId),100);}});}
+
+function waShare(woId){
+  const w=DB.getWO(woId);if(!w)return;
+  const c=DB.getClient(w.clientId);
+  const rv=DB.woRev(w.id),rc=DB.woRec(w.id),pend=Math.max(0,rv-rc);
+  const msg=`Namaskar ${c?c.name:'Customer'} Ji 🙏\n\n*KARGAR Body Works*\nOrder: *${w.orderId}*\nChassis: ${w.chassisNo||'—'}\nVehicle: ${w.vehicleType||'—'}\n\n💰 Order Value: *${fmtF(rv)}*\n✅ Received: *${fmtF(rc)}*\n⚠️ Balance Pending: *${fmtF(pend)}*\nDelivery: ${fmt(w.deliveryDate)}\n\n— Kargar Body Works\n${DB.settings.phone}`;
+  const mobile=c?c.mobile:'';
+  window.open('https://wa.me/'+(mobile?'91'+mobile.replace(/\D/g,''):'')+'?text='+encodeURIComponent(msg),'_blank');
+}
+
+function saveSettings(){
+  const s=DB.settings;
+  s.companyName=document.getElementById('cs-name').value.trim();
+  s.phone=document.getElementById('cs-phone').value.trim();
+  s.email=document.getElementById('cs-email').value.trim();
+  s.website=document.getElementById('cs-web').value.trim();
+  s.gstin=document.getElementById('cs-gstin').value.trim();
+  s.gstRate=parseFloat(document.getElementById('cs-gst').value)||18;
+  s.partnerA=document.getElementById('cs-pA').value.trim()||'Arman';
+  s.partnerB=document.getElementById('cs-pB').value.trim()||'Vishal';
+  s.address=document.getElementById('cs-addr').value.trim();
+  DB.save('settings');toast('Settings saved ✓');
+  document.getElementById('partner-a').textContent=s.partnerA;
+  document.getElementById('partner-b').textContent=s.partnerB;
+}
+
+function showHistory(){
+  const logs=(DB.history||[]).slice(0,80);
+  modal(`<div class="modal modal-lg"><div class="mh"><div class="mt">📜 History</div><button class="xbtn" onclick="closeModal()">×</button></div><div class="mb2" style="max-height:480px;overflow-y:auto">
+${logs.length?`<table><tr><th>Time</th><th>Module</th><th>Action</th><th>Detail</th></tr>${logs.map(l=>`<tr><td style="font-family:monospace;font-size:11px">${fmt(l.ts)}</td><td><span class="badge bb">${esc(l.mod)}</span></td><td><span class="badge ${l.act==='DELETE'?'bgr':l.act==='ADD'?'bgg':'ba'}">${esc(l.act)}</span></td><td style="font-size:12px">${esc(l.detail)}</td></tr>`).join('')}</table>`:'<div class="empty"><div class="ei">📜</div><h3>No history</h3></div>'}
+</div><div class="mf"><button class="btn btn-ghost" onclick="closeModal()">Close</button></div></div>`);
+}
+
+function showExport(){
+  const s=DB.stats();
+  modal(`<div class="modal modal-lg"><div class="mh"><div class="mt">📊 Export to CSV/Excel</div><button class="xbtn" onclick="closeModal()">×</button></div><div class="mb2">
+<div class="stats" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
+  <div class="stat blue"><div class="stat-l">Trucks</div><div class="stat-v">${DB.workOrders.length}</div></div>
+  <div class="stat red"><div class="stat-l">Expenses</div><div class="stat-v">${fmtM(s.cost)}</div></div>
+  <div class="stat green"><div class="stat-l">Received</div><div class="stat-v">${fmtM(s.rec)}</div></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+  ${[['🚛 Truck Register','exportTrucks'],['💰 Costing','exportCosting'],['📈 Earnings','exportEarnings'],['💳 Client Payments','exportPayments']].map(([lbl,fn])=>`<button class="btn btn-red" style="padding:14px;font-size:14px" onclick="closeModal();${fn}()">${lbl}</button>`).join('')}
+</div>
+</div><div class="mf"><button class="btn btn-ghost" onclick="closeModal()">Close</button><button class="btn btn-green" onclick="closeModal();exportAll()">⬇ Export All 4</button></div></div>`);
+}
+
+function csv(fname,headers,rows){
+  const e=v=>{const s=String(v===null||v===undefined?'':v);return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.replace(/"/g,'""')+'"':s;};
+  const data=[headers.map(e).join(','),...rows.map(r=>r.map(e).join(','))].join('\n');
+  const b=new Blob(['\uFEFF'+data],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=fname;a.click();
+  toast('Exported ✓');
+}
+function exportTrucks(){csv('Kargar_Trucks_'+today()+'.csv',['Order ID','Chassis','Truck No','Client','Mobile','Vehicle','Entry','Delivery','Order Value','Received','Pending','Status','Reference','No GST'],DB.workOrders.map(w=>{const c=DB.getClient(w.clientId);const rv=DB.woRev(w.id),rc=DB.woRec(w.id);return[w.orderId,w.chassisNo||'',w.truckNo||'',c?c.name:'',c?c.mobile||'':'',w.vehicleType||'',w.entryDate||'',w.deliveryDate||'',rv,rc,Math.max(0,rv-rc),w.status,w.isRef?'Yes':'No',w.noGst?'Yes':'No'];}));}
+function exportCosting(){csv('Kargar_Costing_'+today()+'.csv',['Date','Order ID','Type','Category','Vendor','Paid By','Amount','Remark'],DB.costs.map(c=>{const wo=c.woId?DB.getWO(c.woId):null;return[c.date||'',wo?wo.orderId:'General',c.ctype||'',c.category||'',c.vendor||'',c.paidBy||'',c.amount||0,c.remark||''];}));}
+function exportEarnings(){csv('Kargar_Earnings_'+today()+'.csv',['Order ID','Chassis','Client','Vehicle','Entry','Delivery','Revenue','Cost','Profit','Margin%','Received','Pending','Status'],DB.workOrders.map(w=>{const c=DB.getClient(w.clientId);const rv=DB.woRev(w.id),cost=DB.woCost(w.id),rc=DB.woRec(w.id),p=rv-cost;return[w.orderId,w.chassisNo||'',c?c.name:'',w.vehicleType||'',w.entryDate||'',w.deliveryDate||'',rv,cost,p,rv>0?(p/rv*100).toFixed(1)+'%':'0%',rc,Math.max(0,rv-rc),w.status];}));}
+function exportPayments(){csv('Kargar_Payments_'+today()+'.csv',['Date','Order ID','Client','Mobile','Amount','Mode','Received By','Note'],DB.payments.filter(p=>p.dir==='in').map(p=>{const c=p.clientId?DB.getClient(p.clientId):null;const wo=p.woId?DB.getWO(p.woId):null;return[p.date||'',wo?wo.orderId:'',c?c.name:'',c?c.mobile||'':'',p.amount||0,p.mode||'',p.recBy||'',p.note||''];}));}
+function exportAll(){exportTrucks();setTimeout(exportCosting,400);setTimeout(exportEarnings,800);setTimeout(exportPayments,1200);}
+
+function showBackup(){
+  const mode=FS.handle?'📁 Folder: '+FS.handle.name:'💾 Browser Memory';
+  modal(`<div class="modal"><div class="mh"><div class="mt">💾 Storage & Backup</div><button class="xbtn" onclick="closeModal()">×</button></div><div class="mb2">
+
+  <div style="background:#F7F8FC;border-radius:8px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
+    <div><div style="font-size:11px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.8px">Current Storage</div><div style="font-size:14px;font-weight:700;margin-top:3px">${mode}</div></div>
+    <button class="btn btn-blue" onclick="selectFolder()">📂 Folder Select Karo</button>
+  </div>
+  <div style="font-size:12px;color:var(--t3);margin-bottom:14px;line-height:1.6">
+    <b>📂 Folder:</b> Data JSON files mein save hoga — Google Drive folder select karo to auto cloud backup.<br>
+    <b>💾 Browser:</b> Data browser memory mein — cache clear hone pe data ja sakta hai.
+  </div>
+
+<div style="display:grid;gap:10px">
+  <div style="border:1px solid var(--border);border-radius:8px;padding:14px">
+    <div style="font-weight:700;margin-bottom:5px">⬇️ Backup Download</div>
+    <div style="font-size:12px;color:var(--t3);margin-bottom:10px">Saara data ek JSON file mein export karo</div>
+    <button class="btn btn-red" style="width:100%" onclick="doBackup()">💾 Download Backup</button>
+  </div>
+  <div style="border:1px solid var(--border);border-radius:8px;padding:14px">
+    <div style="font-weight:700;margin-bottom:5px">⬆️ Restore</div>
+    <div style="font-size:12px;color:var(--t3);margin-bottom:10px">Backup file se data restore karo</div>
+    <label class="btn btn-ghost" style="width:100%;justify-content:center;cursor:pointer">📂 File Select Karo<input type="file" accept=".json" style="display:none" onchange="doRestore(this)"></label>
+  </div>
+</div>
+<div style="margin-top:10px;padding:9px 12px;background:#FEF3C7;border-radius:7px;font-size:12px;color:#92400E">⚠️ Restore se current data replace ho jaayega!</div>
+</div><div class="mf"><button class="btn btn-ghost" onclick="closeModal()">Close</button></div></div>`);
+}
+
+async function selectFolder(){
+  const ok=await FS.pickFolder();
+  if(ok){
+    // Save current localStorage data to folder
+    const keys=['clients','workOrders','costs','payments','vendors','contractors','salesmen','partnerTxns','cms','settings','history'];
+    for(const k of keys) await FS.write(k,DB[k]);
+    toast('Folder selected! Data sync ho gaya ✓','ok');
+    updateStorageStatus();
+    closeModal();
+  } else {
+    toast('Folder select nahi hua','err');
+  }
+}
+
+function doBackup(){
+  const d={v:'2.0',at:now(),clients:DB.clients,workOrders:DB.workOrders,costs:DB.costs,payments:DB.payments,vendors:DB.vendors,contractors:DB.contractors,salesmen:DB.salesmen,partnerTxns:DB.partnerTxns,cms:DB.cms,settings:DB.settings,history:DB.history};
+  const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='Kargar_Backup_'+today()+'.json';a.click();
+  toast('Backup downloaded ✓');
+}
+
+function doRestore(input){
+  const file=input.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const d=JSON.parse(e.target.result);
+      if(!d.workOrders){toast('Invalid backup file','err');return;}
+      confirm2('Current saara data replace ho jaayega. Confirm?',()=>{
+        if(d.clients)DB.clients=d.clients;
+        if(d.workOrders)DB.workOrders=d.workOrders;
+        if(d.costs)DB.costs=d.costs;
+        if(d.payments)DB.payments=d.payments;
+        if(d.vendors)DB.vendors=d.vendors;
+        if(d.contractors)DB.contractors=d.contractors;
+        if(d.salesmen)DB.salesmen=d.salesmen;
+        if(d.partnerTxns)DB.partnerTxns=d.partnerTxns;
+        if(d.cms)Object.assign(DB.cms,d.cms);
+        if(d.settings)Object.assign(DB.settings,d.settings);
+        if(d.history)DB.history=d.history;
+        ['clients','workOrders','costs','payments','vendors','contractors','salesmen','partnerTxns','cms','settings','history'].forEach(k=>LS.set(k,DB[k]));
+        toast('Data restored ✓');closeModal();goPage('dashboard');
+      });
+    }catch(err){toast('Error: '+err.message,'err');}
+  };
+  r.readAsText(file);
+}
+
+// ─── FOLDER STORAGE ────────────────────────────────────
+const FS = {
+  handle: null,
+
+  async _idb(){
+    return new Promise((res,rej)=>{
+      const r=indexedDB.open('KargarFS',1);
+      r.onupgradeneeded=e=>e.target.result.createObjectStore('meta');
+      r.onsuccess=e=>res(e.target.result);
+      r.onerror=()=>res(null);
+    });
+  },
+
+  async saveHandle(h){
+    try{ const db=await this._idb(); if(!db)return; const tx=db.transaction('meta','readwrite'); tx.objectStore('meta').put(h,'dir'); }catch(e){}
+  },
+
+  async loadHandle(){
+    try{ const db=await this._idb(); if(!db)return null;
+      return new Promise(res=>{ const tx=db.transaction('meta','readonly'); const r=tx.objectStore('meta').get('dir'); r.onsuccess=()=>res(r.result||null); r.onerror=()=>res(null); });
+    }catch(e){ return null; }
+  },
+
+  async tryAutoConnect(){
+    try{
+      const h=await this.loadHandle();
+      if(!h)return false;
+      const perm=await h.requestPermission({mode:'readwrite'});
+      if(perm==='granted'){ this.handle=h; return true; }
+    }catch(e){}
+    return false;
+  },
+
+  async pickFolder(){
+    if(!window.showDirectoryPicker){ toast('Browser support nahi hai — Chrome use karo','err'); return false; }
+    try{
+      const h=await window.showDirectoryPicker({mode:'readwrite'});
+      this.handle=h;
+      await this.saveHandle(h);
+      return true;
+    }catch(e){ return false; }
+  },
+
+  async read(key){
+    if(!this.handle)return null;
+    try{
+      const fh=await this.handle.getFileHandle('kargar_'+key+'.json');
+      const f=await fh.getFile();
+      return JSON.parse(await f.text());
+    }catch(e){ return null; }
+  },
+
+  async write(key,data){
+    if(!this.handle)return false;
+    try{
+      const fh=await this.handle.getFileHandle('kargar_'+key+'.json',{create:true});
+      const w=await fh.createWritable();
+      await w.write(JSON.stringify(data,null,2));
+      await w.close();
+      return true;
+    }catch(e){ return false; }
+  }
+};
+
+// Override LS.set/get to use folder if available
+const _lsOrig = { get:LS.get.bind(LS), set:LS.set.bind(LS) };
+LS.get = function(k){ return _lsOrig.get(k); };
+LS.set = function(k,v){ _lsOrig.set(k,v); if(FS.handle) FS.write(k,v); return true; };
+
+async function loadFromFolder(){
+  const keys=['clients','workOrders','costs','payments','vendors','contractors','salesmen','partnerTxns','cms','settings','history'];
+  for(const k of keys){
+    try{
+      const d=await FS.read(k);
+      if(d!==null){ if(k==='settings'||k==='cms') Object.assign(DB[k],d); else DB[k]=d; }
+    }catch(e){}
+  }
+}
+
+function updateStorageStatus(){
+  const stxt=document.getElementById('stxt');
+  if(stxt) stxt.textContent=FS.handle?'📁 Folder':'💾 Browser';
+}
+
+// ─── BOOT ──────────────────────────────────────────────
+function launchApp(){
+  document.getElementById('setup').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('page-date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'long'});
+  document.getElementById('partner-a').textContent=DB.settings.partnerA||'Arman';
+  document.getElementById('partner-b').textContent=DB.settings.partnerB||'Vishal';
+  document.querySelectorAll('.sb-item[data-page]').forEach(el=>{
+    el.addEventListener('click',function(){
+      goPage(this.dataset.page);
+      if(window.innerWidth<=640) closeSidebar();
+    });
+  });
+  goPage('dashboard');
+  updateStorageStatus();
+}
+
+async function setupFolder(){
+  if(!window.showDirectoryPicker){
+    alert('Aapka browser folder select ko support nahi karta. Chrome ya Edge use karo, ya Browser Memory choose karo.');
+    return;
+  }
+  const ok=await FS.pickFolder();
+  if(ok){
+    // Try to load existing data from folder first
+    await loadFromFolder();
+    // Also sync any localStorage data to folder
+    const keys=['clients','workOrders','costs','payments','vendors','contractors','salesmen','partnerTxns','cms','settings','history'];
+    for(const k of keys) await FS.write(k,DB[k]);
+    launchApp();
+  } else {
+    // User cancelled — stay on setup
+  }
+}
+
+function setupLocal(){
+  DB.load();
+  launchApp();
+}
+
+document.addEventListener('DOMContentLoaded',async function(){
+  // Try auto-reconnect to previously used folder
+  const folderOk=await FS.tryAutoConnect();
+  if(folderOk){
+    await loadFromFolder();
+    launchApp();
+    return;
+  }
+  // Check if localStorage has existing data — auto-boot
+  const hasData=localStorage.getItem('kg2_workOrders');
+  if(hasData){
+    DB.load();
+    launchApp();
+    return;
+  }
+  // Fresh install — show setup screen
+});
+</script>
+</body>
+</html>
